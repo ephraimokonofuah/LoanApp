@@ -1,0 +1,261 @@
+@model LoanApp.Models.SupportTicket
+
+@{
+    ViewData["Title"] = "Ticket " + Model.TicketNumber;
+    var orderedMessages = Model.Messages.OrderBy(m => m.CreatedAt).ToList();
+}
+
+<div class="container-fluid mt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary mb-3">
+        <i class="bi bi-arrow-left me-1"></i> Back to Tickets
+    </a>
+
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-1"></i> @TempData["success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle me-1"></i> @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Status Timeline -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body py-4">
+            <div class="d-flex justify-content-between align-items-center position-relative px-4">
+                <div class="position-absolute" style="top:50%;left:8%;right:8%;height:3px;background:#e9ecef;z-index:0;transform:translateY(-50%);"></div>
+                @{
+                    var steps = new[] { "Open", "In Progress", "Awaiting Response", "Resolved", "Closed" };
+                    var statusValues = new[] {
+                        LoanApp.Models.TicketStatus.Open,
+                        LoanApp.Models.TicketStatus.InProgress,
+                        LoanApp.Models.TicketStatus.AwaitingResponse,
+                        LoanApp.Models.TicketStatus.Resolved,
+                        LoanApp.Models.TicketStatus.Closed
+                    };
+                    var currentIndex = Array.IndexOf(statusValues, Model.Status);
+                    var icons = new[] { "bi-envelope-open", "bi-gear", "bi-hourglass-split", "bi-check-circle", "bi-lock" };
+                }
+                @for (int i = 0; i < steps.Length; i++)
+                {
+                    var isActive = i <= currentIndex;
+                    var isCurrent = i == currentIndex;
+                    <div class="text-center position-relative" style="z-index:1;flex:1;">
+                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-2 @(isActive ? "bg-primary text-white" : "bg-light text-muted border")"
+                             style="width:40px;height:40px;@(isCurrent ? "box-shadow:0 0 0 4px rgba(13,110,253,.25);" : "")">
+                            <i class="bi @icons[i]"></i>
+                        </div>
+                        <div class="small @(isActive ? "fw-semibold" : "text-muted")">@steps[i]</div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Left: Ticket Info -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Ticket Details</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-5 text-muted">Ticket #</dt>
+                        <dd class="col-7 fw-bold text-primary">@Model.TicketNumber</dd>
+
+                        <dt class="col-5 text-muted">Subject</dt>
+                        <dd class="col-7">@Model.Subject</dd>
+
+                        <dt class="col-5 text-muted">Category</dt>
+                        <dd class="col-7">
+                            <span class="badge bg-light text-dark border">@Model.Category</span>
+                        </dd>
+
+                        <dt class="col-5 text-muted">Priority</dt>
+                        <dd class="col-7">
+                            @switch (Model.Priority)
+                            {
+                                case LoanApp.Models.TicketPriority.Low:
+                                    <span class="badge bg-secondary">Low</span>
+                                    break;
+                                case LoanApp.Models.TicketPriority.Medium:
+                                    <span class="badge bg-info">Medium</span>
+                                    break;
+                                case LoanApp.Models.TicketPriority.High:
+                                    <span class="badge bg-warning text-dark">High</span>
+                                    break;
+                                case LoanApp.Models.TicketPriority.Urgent:
+                                    <span class="badge bg-danger">Urgent</span>
+                                    break;
+                            }
+                        </dd>
+
+                        <dt class="col-5 text-muted">Status</dt>
+                        <dd class="col-7">
+                            @switch (Model.Status)
+                            {
+                                case LoanApp.Models.TicketStatus.Open:
+                                    <span class="badge bg-primary">Open</span>
+                                    break;
+                                case LoanApp.Models.TicketStatus.InProgress:
+                                    <span class="badge bg-info">In Progress</span>
+                                    break;
+                                case LoanApp.Models.TicketStatus.AwaitingResponse:
+                                    <span class="badge bg-warning text-dark">Awaiting Response</span>
+                                    break;
+                                case LoanApp.Models.TicketStatus.Resolved:
+                                    <span class="badge bg-success">Resolved</span>
+                                    break;
+                                case LoanApp.Models.TicketStatus.Closed:
+                                    <span class="badge bg-secondary">Closed</span>
+                                    break;
+                            }
+                        </dd>
+
+                        <dt class="col-5 text-muted">Created</dt>
+                        <dd class="col-7">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+
+                        <dt class="col-5 text-muted">Last Updated</dt>
+                        <dd class="col-7">@Model.UpdatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+
+                        @if (Model.AssignedTo != null)
+                        {
+                            <dt class="col-5 text-muted">Assigned To</dt>
+                            <dd class="col-7">
+                                <i class="bi bi-person-badge me-1"></i>@Model.AssignedTo.FullName
+                            </dd>
+                        }
+
+                        @if (Model.ClosedAt.HasValue)
+                        {
+                            <dt class="col-5 text-muted">Closed At</dt>
+                            <dd class="col-7">@Model.ClosedAt.Value.ToString("dd MMM yyyy HH:mm")</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Actions</h6>
+                </div>
+                <div class="card-body d-grid gap-2">
+                    @if (Model.Status != LoanApp.Models.TicketStatus.Closed && Model.Status != LoanApp.Models.TicketStatus.Resolved)
+                    {
+                        <form asp-action="Close" method="post">
+                            <input type="hidden" name="ticketId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-outline-secondary w-100"
+                                    onclick="return confirm('Are you sure you want to close this ticket?');">
+                                <i class="bi bi-x-circle me-1"></i>Close Ticket
+                            </button>
+                        </form>
+                    }
+
+                    @if (Model.Status == LoanApp.Models.TicketStatus.Closed || Model.Status == LoanApp.Models.TicketStatus.Resolved)
+                    {
+                        <form asp-action="Reopen" method="post">
+                            <input type="hidden" name="ticketId" value="@Model.Id" />
+                            <button type="submit" class="btn btn-outline-primary w-100">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Reopen Ticket
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Conversation -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Conversation</h6>
+                    <span class="badge bg-primary rounded-pill">@orderedMessages.Count messages</span>
+                </div>
+                <div class="card-body" style="max-height: 500px; overflow-y: auto;" id="chatContainer">
+                    @if (!orderedMessages.Any())
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-chat-square-dots" style="font-size: 2rem;"></i>
+                            <p class="mt-2">No messages yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var msg in orderedMessages)
+                        {
+                            var isAdmin = msg.IsAdminReply;
+                            <div class="d-flex mb-3 @(isAdmin ? "" : "flex-row-reverse")">
+                                <div class="@(isAdmin ? "me-2" : "ms-2")">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center @(isAdmin ? "bg-primary" : "bg-secondary") text-white"
+                                         style="width:36px;height:36px;font-size:0.85rem;">
+                                        @if (isAdmin)
+                                        {
+                                            <i class="bi bi-headset"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-person"></i>
+                                        }
+                                    </div>
+                                </div>
+                                <div style="max-width:75%;">
+                                    <div class="px-3 py-2 rounded-3 @(isAdmin ? "bg-primary bg-opacity-10 border-start border-3 border-primary" : "bg-light border-start border-3 border-secondary")">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <small class="fw-semibold @(isAdmin ? "text-primary" : "")">
+                                                @(isAdmin ? (msg.Sender?.FullName ?? "Support Agent") : "You")
+                                            </small>
+                                        </div>
+                                        <p class="mb-1" style="white-space: pre-wrap;">@msg.Message</p>
+                                        <small class="text-muted">@msg.CreatedAt.ToString("dd MMM yyyy HH:mm")</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+                @if (Model.Status != LoanApp.Models.TicketStatus.Closed)
+                {
+                    <div class="card-footer bg-light p-3">
+                        <form asp-action="Reply" method="post">
+                            <input type="hidden" name="ticketId" value="@Model.Id" />
+                            <div class="d-flex gap-2">
+                                <textarea name="message" class="form-control" rows="2"
+                                          placeholder="Type your message..." required></textarea>
+                                <button type="submit" class="btn btn-primary align-self-end px-4">
+                                    <i class="bi bi-send"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                }
+                else
+                {
+                    <div class="card-footer bg-light text-center py-3">
+                        <span class="text-muted">
+                            <i class="bi bi-lock me-1"></i>This ticket is closed. Reopen it to send a message.
+                        </span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-scroll chat to bottom
+        var chatContainer = document.getElementById('chatContainer');
+        if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
+}

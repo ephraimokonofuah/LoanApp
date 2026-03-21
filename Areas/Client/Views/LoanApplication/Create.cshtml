@@ -1,0 +1,203 @@
+@model LoanApp.Models.LoanApplication
+
+@{
+    ViewData["Title"] = "Apply for a Loan";
+    var loanTypes = ViewBag.LoanTypes as List<LoanApp.Models.LoanType>;
+}
+
+<div class="container mt-4" style="max-width: 700px;">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-file-earmark-plus me-2"></i>Apply for a New Loan</h4>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post">
+                <div class="mb-3">
+                    <label asp-for="LoanTypeId" class="form-label fw-semibold">Loan Type</label>
+                    <select asp-for="LoanTypeId" class="form-select" id="loanTypeSelect">
+                        <option value="">-- Select a Loan Type --</option>
+                        @if (loanTypes != null)
+                        {
+                            @foreach (var lt in loanTypes)
+                            {
+                                <option value="@lt.Id" data-interest="@lt.InterestRate" data-description="@lt.Description">@lt.Name</option>
+                            }
+                        }
+                    </select>
+                    <div id="loanTypeDescription" class="form-text text-muted mt-1" style="display:none;"></div>
+                    <span asp-validation-for="LoanTypeId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="InterestRate" class="form-label fw-semibold">Interest Rate (%)</label>
+                    <div class="input-group">
+                        <input asp-for="InterestRate" class="form-control" id="interestRateInput" readonly />
+                        <span class="input-group-text">%</span>
+                    </div>
+                    <div class="form-text">Interest rate is set based on the selected loan type.</div>
+                    <span asp-validation-for="InterestRate" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="LoanAmount" class="form-label fw-semibold">Loan Amount ($)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="LoanAmount" class="form-control" placeholder="Enter loan amount" />
+                    </div>
+                    <span asp-validation-for="LoanAmount" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="LoanPurpose" class="form-label fw-semibold">Purpose / Description</label>
+                    <textarea asp-for="LoanPurpose" class="form-control" rows="2" placeholder="Describe the purpose of your loan"></textarea>
+                    <span asp-validation-for="LoanPurpose" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DurationMonths" class="form-label fw-semibold">Duration (Months)</label>
+                    <input asp-for="DurationMonths" class="form-control" type="number" min="1" max="360" placeholder="e.g., 12" />
+                    <span asp-validation-for="DurationMonths" class="text-danger"></span>
+                </div>
+
+                <div id="loanSummary" class="card border-0 shadow-sm bg-light mt-3" style="display:none;">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-calculator me-2 text-primary"></i>Repayment Breakdown</h6>
+                        <div class="row g-3">
+                            <div class="col-6 col-md-3">
+                                <div class="text-muted small">Loan Type</div>
+                                <div class="fw-bold" id="summaryType">-</div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="text-muted small">Annual Rate</div>
+                                <div class="fw-bold text-primary" id="summaryRate">-</div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="text-muted small">Monthly Rate</div>
+                                <div class="fw-bold text-info" id="summaryMonthlyRate">-</div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="text-muted small">Duration</div>
+                                <div class="fw-bold" id="summaryDuration">-</div>
+                            </div>
+                            <div class="col-6 col-md-3">
+                                <div class="text-muted small">Loan Amount</div>
+                                <div class="fw-bold" id="summaryAmount">-</div>
+                            </div>
+                        </div>
+                        <hr />
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center mb-2 mb-md-0">
+                                    <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width:50px;height:50px;">
+                                        <i class="bi bi-calendar-check text-primary fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Monthly Repayment</div>
+                                        <div class="fs-4 fw-bold text-success" id="summaryMonthly">$0.00</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-warning bg-opacity-10 d-flex align-items-center justify-content-center me-3" style="width:50px;height:50px;">
+                                        <i class="bi bi-cash-stack text-warning fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">Total Repayment</div>
+                                        <div class="fs-4 fw-bold text-danger" id="summaryTotal">$0.00</div>
+                                        <div class="text-muted small" id="summaryBreakdown"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 p-2 bg-white rounded small" id="summaryInterestCost" style="display:none;">
+                            <i class="bi bi-info-circle text-info me-1"></i>
+                            <span class="text-muted">Total interest cost: </span>
+                            <strong class="text-danger" id="summaryInterestAmount">$0.00</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Submit Application</button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function formatCurrency(n) {
+            return '$' + n.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
+        function calculateRepayment() {
+            var select = document.getElementById('loanTypeSelect');
+            var selected = select.options[select.selectedIndex];
+            var rate = parseFloat(selected.getAttribute('data-interest'));
+            var amount = parseFloat(document.getElementById('LoanAmount').value);
+            var months = parseInt(document.getElementById('DurationMonths').value);
+            var summary = document.getElementById('loanSummary');
+
+            if (!rate || !amount || !months || amount <= 0 || months <= 0) {
+                if (!rate) summary.style.display = 'none';
+                return;
+            }
+
+            var monthlyRate = rate / 100 / 12;
+            var monthly;
+            if (monthlyRate === 0) {
+                monthly = amount / months;
+            } else {
+                var powerTerm = Math.pow(1 + monthlyRate, months);
+                monthly = amount * (monthlyRate * powerTerm) / (powerTerm - 1);
+            }
+
+            // Round only the final EMI, then derive total from it
+            monthly = Math.round(monthly * 100) / 100;
+            var total = Math.round((monthly * months) * 100) / 100;
+            var interest = Math.round((total - amount) * 100) / 100;
+
+            document.getElementById('summaryType').textContent = selected.text;
+            document.getElementById('summaryRate').textContent = rate + '% p.a.';
+            document.getElementById('summaryMonthlyRate').textContent = (rate / 12).toFixed(4) + '% p.m.';
+            document.getElementById('summaryDuration').textContent = months + ' months';
+            document.getElementById('summaryAmount').textContent = formatCurrency(amount);
+            document.getElementById('summaryMonthly').textContent = formatCurrency(monthly);
+            document.getElementById('summaryTotal').textContent = formatCurrency(total);
+            document.getElementById('summaryBreakdown').textContent = months + ' × ' + formatCurrency(monthly);
+            document.getElementById('summaryInterestAmount').textContent = formatCurrency(interest);
+            document.getElementById('summaryInterestCost').style.display = 'block';
+            summary.style.display = 'block';
+        }
+
+        document.getElementById('loanTypeSelect').addEventListener('change', function () {
+            var selected = this.options[this.selectedIndex];
+            var interestRate = selected.getAttribute('data-interest');
+            var description = selected.getAttribute('data-description');
+            var descDiv = document.getElementById('loanTypeDescription');
+
+            if (interestRate) {
+                document.getElementById('interestRateInput').value = interestRate;
+            } else {
+                document.getElementById('interestRateInput').value = '';
+                document.getElementById('loanSummary').style.display = 'none';
+            }
+
+            if (description) {
+                descDiv.textContent = description;
+                descDiv.style.display = 'block';
+            } else {
+                descDiv.style.display = 'none';
+            }
+
+            calculateRepayment();
+        });
+
+        document.getElementById('LoanAmount').addEventListener('input', calculateRepayment);
+        document.getElementById('DurationMonths').addEventListener('input', calculateRepayment);
+    </script>
+}

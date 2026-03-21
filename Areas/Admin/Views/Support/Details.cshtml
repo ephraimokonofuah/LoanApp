@@ -1,0 +1,293 @@
+@model LoanApp.Models.SupportTicket
+
+@{
+    ViewData["Title"] = "Ticket " + Model.TicketNumber;
+    var orderedMessages = Model.Messages.OrderBy(m => m.CreatedAt).ToList();
+}
+
+<div class="container-fluid mt-4">
+    <a asp-action="Index" class="btn btn-outline-secondary mb-3">
+        <i class="bi bi-arrow-left me-1"></i> Back to All Tickets
+    </a>
+
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-1"></i> @TempData["success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle me-1"></i> @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Left: Ticket Info & Actions -->
+        <div class="col-lg-4">
+            <!-- Ticket Info -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Ticket Details</h6>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-5 text-muted">Ticket #</dt>
+                        <dd class="col-7 fw-bold text-primary">@Model.TicketNumber</dd>
+
+                        <dt class="col-5 text-muted">Subject</dt>
+                        <dd class="col-7">@Model.Subject</dd>
+
+                        <dt class="col-5 text-muted">Submitted By</dt>
+                        <dd class="col-7">
+                            <i class="bi bi-person me-1"></i>@(Model.User?.FullName ?? "N/A")
+                            <br/>
+                            <small class="text-muted">@(Model.User?.Email ?? "")</small>
+                        </dd>
+
+                        <dt class="col-5 text-muted">Category</dt>
+                        <dd class="col-7">
+                            <span class="badge bg-light text-dark border">@Model.Category</span>
+                        </dd>
+
+                        <dt class="col-5 text-muted">Priority</dt>
+                        <dd class="col-7">
+                            @switch (Model.Priority)
+                            {
+                                case LoanApp.Models.TicketPriority.Low:
+                                    <span class="badge bg-secondary">Low</span>
+                                    break;
+                                case LoanApp.Models.TicketPriority.Medium:
+                                    <span class="badge bg-info">Medium</span>
+                                    break;
+                                case LoanApp.Models.TicketPriority.High:
+                                    <span class="badge bg-warning text-dark">High</span>
+                                    break;
+                                case LoanApp.Models.TicketPriority.Urgent:
+                                    <span class="badge bg-danger">
+                                        <i class="bi bi-exclamation-triangle me-1"></i>Urgent
+                                    </span>
+                                    break;
+                            }
+                        </dd>
+
+                        <dt class="col-5 text-muted">Status</dt>
+                        <dd class="col-7">
+                            @switch (Model.Status)
+                            {
+                                case LoanApp.Models.TicketStatus.Open:
+                                    <span class="badge bg-primary">Open</span>
+                                    break;
+                                case LoanApp.Models.TicketStatus.InProgress:
+                                    <span class="badge bg-info">In Progress</span>
+                                    break;
+                                case LoanApp.Models.TicketStatus.AwaitingResponse:
+                                    <span class="badge bg-warning text-dark">Awaiting Response</span>
+                                    break;
+                                case LoanApp.Models.TicketStatus.Resolved:
+                                    <span class="badge bg-success">Resolved</span>
+                                    break;
+                                case LoanApp.Models.TicketStatus.Closed:
+                                    <span class="badge bg-secondary">Closed</span>
+                                    break;
+                            }
+                        </dd>
+
+                        <dt class="col-5 text-muted">Created</dt>
+                        <dd class="col-7">@Model.CreatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+
+                        <dt class="col-5 text-muted">Updated</dt>
+                        <dd class="col-7">@Model.UpdatedAt.ToString("dd MMM yyyy HH:mm")</dd>
+
+                        @if (Model.AssignedTo != null)
+                        {
+                            <dt class="col-5 text-muted">Assigned To</dt>
+                            <dd class="col-7">
+                                <i class="bi bi-person-badge me-1"></i>@Model.AssignedTo.FullName
+                            </dd>
+                        }
+
+                        @if (Model.ClosedAt.HasValue)
+                        {
+                            <dt class="col-5 text-muted">Closed At</dt>
+                            <dd class="col-7">@Model.ClosedAt.Value.ToString("dd MMM yyyy HH:mm")</dd>
+                        }
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Admin Actions -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-light py-3">
+                    <h6 class="mb-0"><i class="bi bi-lightning me-2"></i>Actions</h6>
+                </div>
+                <div class="card-body">
+                    <!-- Update Status -->
+                    <form asp-action="UpdateStatus" method="post" class="mb-3">
+                        <input type="hidden" name="ticketId" value="@Model.Id" />
+                        <label class="form-label fw-semibold small">Update Status</label>
+                        <div class="input-group">
+                            <select name="status" class="form-select form-select-sm">
+                                @{
+                                    var statuses = new[] {
+                                        (0, "Open", LoanApp.Models.TicketStatus.Open),
+                                        (1, "In Progress", LoanApp.Models.TicketStatus.InProgress),
+                                        (2, "Awaiting Response", LoanApp.Models.TicketStatus.AwaitingResponse),
+                                        (3, "Resolved", LoanApp.Models.TicketStatus.Resolved),
+                                        (4, "Closed", LoanApp.Models.TicketStatus.Closed)
+                                    };
+                                }
+                                @foreach (var (val, label, status) in statuses)
+                                {
+                                    if (Model.Status == status)
+                                    {
+                                        <option value="@val" selected="selected">@label</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@val">@label</option>
+                                    }
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Assign To Self -->
+                    @if (string.IsNullOrEmpty(Model.AssignedToId))
+                    {
+                        <form asp-action="Assign" method="post">
+                            <input type="hidden" name="ticketId" value="@Model.Id" />
+                            <input type="hidden" name="adminId" value="@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value" />
+                            <button type="submit" class="btn btn-outline-primary btn-sm w-100">
+                                <i class="bi bi-person-plus me-1"></i>Assign to Me
+                            </button>
+                        </form>
+                    }
+                </div>
+            </div>
+
+            <!-- Activity Summary -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3">
+                    <h6 class="mb-0"><i class="bi bi-activity me-2"></i>Activity</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-muted">Total Messages</small>
+                        <span class="badge bg-primary rounded-pill">@orderedMessages.Count</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-muted">User Messages</small>
+                        <span class="badge bg-secondary rounded-pill">@orderedMessages.Count(m => !m.IsAdminReply)</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-muted">Admin Replies</small>
+                        <span class="badge bg-info rounded-pill">@orderedMessages.Count(m => m.IsAdminReply)</span>
+                    </div>
+                    @if (orderedMessages.Any())
+                    {
+                        <hr />
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>Last message:
+                            @orderedMessages.Last().CreatedAt.ToString("dd MMM yyyy HH:mm")
+                        </small>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Conversation -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-light py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Conversation</h6>
+                    <div>
+                        <span class="badge bg-light text-dark border me-1">
+                            <i class="bi bi-person me-1"></i>@(Model.User?.FullName ?? "User")
+                        </span>
+                        <span class="badge bg-primary rounded-pill">@orderedMessages.Count messages</span>
+                    </div>
+                </div>
+                <div class="card-body" style="max-height: 550px; overflow-y: auto;" id="chatContainer">
+                    @if (!orderedMessages.Any())
+                    {
+                        <div class="text-center py-4 text-muted">
+                            <i class="bi bi-chat-square-dots" style="font-size: 2rem;"></i>
+                            <p class="mt-2">No messages yet.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var msg in orderedMessages)
+                        {
+                            var isAdmin = msg.IsAdminReply;
+                            <div class="d-flex mb-3 @(isAdmin ? "flex-row-reverse" : "")">
+                                <div class="@(isAdmin ? "ms-2" : "me-2")">
+                                    <div class="rounded-circle d-flex align-items-center justify-content-center @(isAdmin ? "bg-primary" : "bg-secondary") text-white"
+                                         style="width:36px;height:36px;font-size:0.85rem;" title="@(msg.Sender?.FullName ?? "Unknown")">
+                                        @if (isAdmin)
+                                        {
+                                            <i class="bi bi-headset"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-person"></i>
+                                        }
+                                    </div>
+                                </div>
+                                <div style="max-width:75%;">
+                                    <div class="px-3 py-2 rounded-3 @(isAdmin ? "bg-primary bg-opacity-10 border-start border-3 border-primary" : "bg-light border-start border-3 border-secondary")">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <small class="fw-semibold @(isAdmin ? "text-primary" : "")">
+                                                @(msg.Sender?.FullName ?? "Unknown")
+                                                @if (isAdmin)
+                                                {
+                                                    <span class="badge bg-primary ms-1" style="font-size:0.6rem;">STAFF</span>
+                                                }
+                                            </small>
+                                        </div>
+                                        <p class="mb-1" style="white-space: pre-wrap;">@msg.Message</p>
+                                        <small class="text-muted">@msg.CreatedAt.ToString("dd MMM yyyy HH:mm")</small>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+
+                <!-- Reply Form -->
+                <div class="card-footer bg-light p-3">
+                    <form asp-action="Reply" method="post">
+                        <input type="hidden" name="ticketId" value="@Model.Id" />
+                        <div class="d-flex gap-2">
+                            <textarea name="message" class="form-control" rows="2"
+                                      placeholder="Type your reply to the user..." required></textarea>
+                            <button type="submit" class="btn btn-primary align-self-end px-4">
+                                <i class="bi bi-send"></i>
+                            </button>
+                        </div>
+                        <small class="text-muted mt-1 d-block">
+                            <i class="bi bi-info-circle me-1"></i>Replying will change status to "Awaiting Response" and notify the user.
+                        </small>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Auto-scroll chat to bottom
+        var chatContainer = document.getElementById('chatContainer');
+        if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+    </script>
+}

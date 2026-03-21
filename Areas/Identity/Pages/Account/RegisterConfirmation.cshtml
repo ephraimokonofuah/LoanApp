@@ -1,0 +1,32 @@
+﻿@page
+@model RegisterConfirmationModel
+@{
+    ViewData["Title"] = "Register confirmation";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-5 col-md-7">
+        <div class="text-center mb-4">
+            <i class="bi bi-person-check text-success" style="font-size: 3rem;"></i>
+            <h3 class="mt-2 fw-bold">Registration Confirmed</h3>
+        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 text-center">
+                @if (Model.DisplayConfirmAccountLink)
+                {
+                    <p>This app does not currently have a real email sender registered.</p>
+                    <a id="confirm-link" href="@Model.EmailConfirmationUrl" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>Click here to confirm your account
+                    </a>
+                }
+                else
+                {
+                    <p class="mb-3">Please check your email to confirm your account.</p>
+                    <a asp-page="./Login" class="btn btn-primary">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>Go to Login
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>

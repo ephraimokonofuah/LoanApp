@@ -1,0 +1,182 @@
+@page
+@model RestrictedModel
+@{
+    ViewData["Title"] = "Account Restricted";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Account Restricted - LoanApp</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .restricted-card {
+            max-width: 520px;
+            width: 100%;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+        }
+        .restricted-header {
+            background: linear-gradient(135deg, #dc3545 0%, #b02a37 100%);
+            padding: 2.5rem 2rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+        .restricted-header::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 30px;
+            background: white;
+            border-radius: 1.5rem 1.5rem 0 0;
+        }
+        .shield-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @@keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(255,255,255,0.2); }
+            50% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(255,255,255,0); }
+        }
+        .info-row {
+            padding: 0.8rem 1.25rem;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #dc3545;
+            display: inline-block;
+            margin-right: 0.5rem;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+        @@keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div class="restricted-card bg-white">
+        <!-- Header -->
+        <div class="restricted-header">
+            <div class="shield-icon">
+                <i class="bi bi-shield-exclamation text-white" style="font-size: 2.5rem;"></i>
+            </div>
+            <h3 class="text-white fw-bold mb-1">Account Suspended</h3>
+            <p class="text-white-50 mb-0 small">Access to your account has been restricted</p>
+        </div>
+
+        <!-- Body -->
+        <div class="px-4 pt-3 pb-4">
+            <!-- Greeting -->
+            <div class="text-center mb-3 mt-2">
+                <p class="text-muted mb-0">
+                    Hi <strong>@Model.UserName</strong>, your account has been suspended by an administrator.
+                    You cannot access any services while your account is restricted.
+                </p>
+            </div>
+
+            <!-- Info Section -->
+            <div class="bg-light rounded-3 mb-4">
+                <div class="info-row">
+                    <div class="info-icon bg-danger bg-opacity-10">
+                        <i class="bi bi-exclamation-triangle-fill text-danger"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Reason for Suspension</small>
+                        <span class="fw-semibold">@(Model.BanReason ?? "Violation of terms of service.")</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon bg-secondary bg-opacity-10">
+                        <i class="bi bi-calendar-x text-secondary"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Suspended On</small>
+                        <span class="fw-semibold">@(Model.BannedAt?.ToString("dd MMMM yyyy, HH:mm") ?? "N/A")</span>
+                    </div>
+                </div>
+                <div class="info-row">
+                    <div class="info-icon bg-warning bg-opacity-10">
+                        <i class="bi bi-clock-history text-warning"></i>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">Status</small>
+                        <span>
+                            <span class="timeline-dot"></span>
+                            <span class="fw-semibold text-danger">Suspended — Under Review</span>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- What to do -->
+            <div class="card border-0 bg-primary bg-opacity-10 mb-4">
+                <div class="card-body py-3">
+                    <h6 class="fw-bold text-primary mb-2"><i class="bi bi-question-circle me-1"></i> What can I do?</h6>
+                    <ul class="small text-muted mb-0 ps-3">
+                        <li class="mb-1">Contact our support team at <strong>support&#64;loanapp.com</strong></li>
+                        <li class="mb-1">Provide your registered email and account details</li>
+                        <li>Request a review of your account suspension</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-grid gap-2">
+                <form method="post" asp-page-handler="Logout">
+                    <button type="submit" class="btn btn-danger w-100 py-2">
+                        <i class="bi bi-box-arrow-right me-2"></i>Sign Out
+                    </button>
+                </form>
+                <a href="mailto:support@loanapp.com?subject=Account%20Suspension%20Review%20Request"
+                   class="btn btn-outline-primary py-2">
+                    <i class="bi bi-envelope me-2"></i>Contact Support
+                </a>
+            </div>
+
+            <p class="text-center text-muted small mt-3 mb-0">
+                <i class="bi bi-lock-fill me-1"></i>All services are temporarily unavailable for your account.
+            </p>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+@model LoanApp.Models.EligibilityCheck
+@using LoanApp.Utility
+
+@{
+    ViewData["Title"] = "Eligibility Result";
+    var (monthly, total, interest) = LoanCalculator.Calculate(Model.DesiredLoanAmount, Model.InterestRate, Model.DurationMonths);
+    var monthlyRatePercent = Model.InterestRate / 12m;
+}
+
+<div class="container mt-4" style="max-width: 750px;">
+
+    <!-- Result Banner -->
+    @if (Model.IsEligible)
+    {
+        <div class="card border-success shadow-sm mb-4">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                <h3 class="mt-2 text-success">You Are Eligible!</h3>
+                <p class="text-muted mb-0">Based on the information you provided, you meet the eligibility criteria for this loan.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="card border-danger shadow-sm mb-4">
+            <div class="card-body text-center py-4">
+                <i class="bi bi-x-circle-fill text-danger" style="font-size: 3rem;"></i>
+                <h3 class="mt-2 text-danger">Not Eligible</h3>
+                <p class="text-muted mb-0">Unfortunately, you do not meet the eligibility criteria at this time.</p>
+            </div>
+        </div>
+    }
+
+    <!-- Reason -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Assessment Details</h6>
+        </div>
+        <div class="card-body">
+            <p class="mb-2">@Model.EligibilityReason</p>
+        </div>
+    </div>
+
+    <!-- Admin Review Status -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="bi bi-person-badge me-2"></i>Admin Review Status</h6>
+        </div>
+        <div class="card-body">
+            @switch (Model.Status)
+            {
+                case "Approved":
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-success fs-6 me-3"><i class="bi bi-check-lg me-1"></i>Approved</span>
+                        <div>
+                            @if (!string.IsNullOrEmpty(Model.AdminNotes))
+                            {
+                                <p class="mb-0 text-muted">@Model.AdminNotes</p>
+                            }
+                            @if (Model.ReviewedAt.HasValue)
+                            {
+                                <small class="text-muted">Reviewed on @Model.ReviewedAt.Value.ToString("dd MMM yyyy, hh:mm tt")</small>
+                            }
+                        </div>
+                    </div>
+                    break;
+                case "Rejected":
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-danger fs-6 me-3"><i class="bi bi-x-lg me-1"></i>Rejected</span>
+                        <div>
+                            @if (!string.IsNullOrEmpty(Model.AdminNotes))
+                            {
+                                <p class="mb-0 text-muted">@Model.AdminNotes</p>
+                            }
+                            @if (Model.ReviewedAt.HasValue)
+                            {
+                                <small class="text-muted">Reviewed on @Model.ReviewedAt.Value.ToString("dd MMM yyyy, hh:mm tt")</small>
+                            }
+                        </div>
+                    </div>
+                    break;
+                default:
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-warning text-dark fs-6 me-3"><i class="bi bi-hourglass-split me-1"></i>Pending Review</span>
+                        <span class="text-muted">An admin will review your eligibility check soon.</span>
+                    </div>
+                    break;
+            }
+        </div>
+    </div>
+
+    <!-- Applicant Information -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="bi bi-person me-2"></i>Applicant Information</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="text-muted small">Full Name</div>
+                    <div class="fw-bold">@Model.FullName</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Date of Birth</div>
+                    <div class="fw-bold">@Model.DateOfBirth.ToString("dd MMM yyyy")</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Employment Status</div>
+                    <div class="fw-bold">@Model.EmploymentStatus</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Credit Score Range</div>
+                    <div class="fw-bold">@Model.CreditScoreRange</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Monthly Income</div>
+                    <div class="fw-bold text-success">@Model.MonthlyIncome.ToString("C")</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Monthly Expenses</div>
+                    <div class="fw-bold text-danger">@Model.MonthlyExpenses.ToString("C")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repayment Breakdown -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="bi bi-calculator me-2"></i>Loan Repayment Breakdown</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Loan Type</div>
+                    <div class="fw-bold">@Model.LoanType?.Name</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Loan Amount</div>
+                    <div class="fw-bold">@Model.DesiredLoanAmount.ToString("C")</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Duration</div>
+                    <div class="fw-bold">@Model.DurationMonths months</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Annual Rate</div>
+                    <div class="fw-bold text-primary">@Model.InterestRate%</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Monthly Rate</div>
+                    <div class="fw-bold text-info">@monthlyRatePercent.ToString("F4")% p.m.</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Monthly Repayment</div>
+                    <div class="fw-bold text-success fs-5">@monthly.ToString("C")</div>
+                </div>
+            </div>
+            <hr />
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="text-muted small">Total Repayment</div>
+                    <div class="fw-bold fs-5">@Model.DurationMonths &times; @monthly.ToString("C") = @total.ToString("C")</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Total Interest Cost</div>
+                    <div class="fw-bold text-danger fs-5">@interest.ToString("C")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Privacy Reassurance -->
+    <div class="alert alert-light border text-center mb-4">
+        <i class="bi bi-shield-lock me-2"></i>
+        This eligibility check has <strong>NOT</strong> affected your credit score and is not recorded with any external agency.
+    </div>
+
+    <!-- Actions -->
+    <div class="d-flex justify-content-between">
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>My Eligibility Checks
+        </a>
+        @if (Model.IsEligible && Model.Status == "Approved")
+        {
+            <a asp-area="Client" asp-controller="LoanApplication" asp-action="Create"
+               asp-route-eligibilityId="@Model.Id"
+               class="btn btn-success btn-lg">
+                <i class="bi bi-arrow-right-circle me-2"></i>Proceed to Loan Application
+            </a>
+        }
+        else if (Model.IsEligible && Model.Status == "Pending")
+        {
+            <button class="btn btn-secondary btn-lg" disabled>
+                <i class="bi bi-hourglass-split me-2"></i>Awaiting Admin Approval
+            </button>
+        }
+        else if (!Model.IsEligible)
+        {
+            <a asp-action="Check" class="btn btn-primary">
+                <i class="bi bi-arrow-repeat me-1"></i>Try Again
+            </a>
+        }
+    </div>
+</div>

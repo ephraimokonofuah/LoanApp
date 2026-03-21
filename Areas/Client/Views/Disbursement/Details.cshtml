@@ -1,0 +1,151 @@
+@model LoanApp.Models.LoanDisbursement
+
+@{
+    ViewData["Title"] = "Disbursement Details";
+}
+
+<div class="container mt-4" style="max-width: 750px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold mb-0"><i class="bi bi-cash-stack text-primary me-2"></i>Disbursement Details</h2>
+        <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-arrow-left me-1"></i>Back</a>
+    </div>
+
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-1"></i> @TempData["success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Status Progress -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="fw-bold mb-0"><i class="bi bi-signpost-2 me-2"></i>Disbursement Progress</h5>
+        </div>
+        <div class="card-body">
+            @{
+                var steps = new[] {
+                    ("Pending Setup", LoanApp.Models.DisbursementStatus.PendingSetup),
+                    ("Bank Selected", LoanApp.Models.DisbursementStatus.BankSelected),
+                    ("Details Submitted", LoanApp.Models.DisbursementStatus.AccountDetailsSubmitted),
+                    ("Ready for Payment", LoanApp.Models.DisbursementStatus.ReadyForPayment),
+                    ("Paid", LoanApp.Models.DisbursementStatus.Paid)
+                };
+                var currentIndex = Array.FindIndex(steps, s => s.Item2 == Model.Status);
+                var isFailed = Model.Status == LoanApp.Models.DisbursementStatus.Failed;
+            }
+
+            @if (isFailed)
+            {
+                <div class="alert alert-danger mb-0">
+                    <i class="bi bi-x-circle me-1"></i> <strong>Disbursement Failed.</strong>
+                    @if (!string.IsNullOrEmpty(Model.Notes))
+                    {
+                        <span>@Model.Notes</span>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="d-flex justify-content-between position-relative" style="padding: 0 20px;">
+                    <div class="position-absolute" style="top: 15px; left: 40px; right: 40px; height: 3px; background: #e9ecef; z-index: 0;"></div>
+                    <div class="position-absolute" style="top: 15px; left: 40px; height: 3px; background: var(--bs-primary); z-index: 1; width: @(currentIndex >= 0 ? (currentIndex * 25) : 0)%;"></div>
+                    @for (int i = 0; i < steps.Length; i++)
+                    {
+                        var isCompleted = i <= currentIndex;
+                        var isCurrent = i == currentIndex;
+                        <div class="text-center position-relative" style="z-index: 2; flex: 1;">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center @(isCompleted ? "bg-primary text-white" : "bg-light border")"
+                                 style="width: 32px; height: 32px; @(isCurrent ? "box-shadow: 0 0 0 3px rgba(13,110,253,0.25);" : "")">
+                                @if (isCompleted && !isCurrent)
+                                {
+                                    <i class="bi bi-check"></i>
+                                }
+                                else
+                                {
+                                    <span class="small">@(i + 1)</span>
+                                }
+                            </div>
+                            <div class="small mt-1 @(isCompleted ? "fw-semibold" : "text-muted")">@steps[i].Item1</div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Disbursement Info -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-white">
+            <h5 class="fw-bold mb-0"><i class="bi bi-info-circle me-2"></i>Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label text-muted small">Application #</label>
+                    <p class="fw-semibold mb-0">
+                        <a asp-area="Client" asp-controller="LoanApplication" asp-action="Details" asp-route-id="@Model.LoanApplicationId">
+                            #@Model.LoanApplicationId
+                        </a>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small">Approved Amount</label>
+                    <p class="fw-bold text-success fs-5 mb-0">@Model.ApprovedAmount.ToString("C")</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small">Bank</label>
+                    <p class="fw-semibold mb-0">@(Model.Bank?.Name ?? "Not Selected")</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small">Account Name</label>
+                    <p class="fw-semibold mb-0">@(Model.AccountName ?? "—")</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small">Account Number</label>
+                    <p class="fw-semibold mb-0">@(Model.AccountNumber ?? "—")</p>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label text-muted small">Sort Code</label>
+                    <p class="fw-semibold mb-0">@(Model.SortCode ?? "—")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Status == LoanApp.Models.DisbursementStatus.Paid)
+    {
+        <div class="card shadow-sm mb-4 border-success">
+            <div class="card-header bg-success text-white">
+                <h5 class="fw-bold mb-0"><i class="bi bi-check-circle me-2"></i>Payment Received</h5>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Paid Amount</label>
+                        <p class="fw-bold text-success fs-5 mb-0">@Model.PaidAmount.ToString("C")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Payment Reference</label>
+                        <p class="fw-semibold mb-0">@(Model.PaymentReference ?? "—")</p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-muted small">Paid On</label>
+                        <p class="fw-semibold mb-0">@(Model.PaidAt?.ToString("dd MMM yyyy HH:mm") ?? "—")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Action Button -->
+    @if (Model.Status == LoanApp.Models.DisbursementStatus.PendingSetup || Model.Status == LoanApp.Models.DisbursementStatus.BankSelected)
+    {
+        <div class="text-center">
+            <a asp-action="Setup" asp-route-loanApplicationId="@Model.LoanApplicationId" class="btn btn-primary btn-lg">
+                <i class="bi bi-gear me-1"></i>Setup Bank Details
+            </a>
+        </div>
+    }
+</div>

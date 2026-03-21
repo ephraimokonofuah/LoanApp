@@ -1,0 +1,75 @@
+@model LoanApp.Models.ViewModels.DisbursementSetupViewModel
+
+@{
+    ViewData["Title"] = "Setup Disbursement";
+}
+
+<div class="container mt-4" style="max-width: 650px;">
+    <h2 class="fw-bold mb-1"><i class="bi bi-gear text-primary me-2"></i>Setup Disbursement</h2>
+    <p class="text-muted mb-4">Provide your bank details to receive your approved loan amount.</p>
+
+    <div class="card shadow-sm mb-4 border-success">
+        <div class="card-body text-center">
+            <small class="text-muted">Approved Amount</small>
+            <h2 class="fw-bold text-success mb-0">@Model.ApprovedAmount.ToString("C")</h2>
+            <small class="text-muted">Application #@Model.LoanApplicationId</small>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-white">
+            <h5 class="fw-bold mb-0"><i class="bi bi-bank2 me-2"></i>Bank Account Details</h5>
+        </div>
+        <div class="card-body">
+            <form asp-action="Setup" method="post">
+                <input type="hidden" asp-for="DisbursementId" />
+                <input type="hidden" asp-for="LoanApplicationId" />
+                <input type="hidden" asp-for="ApprovedAmount" />
+
+                <div class="mb-3">
+                    <label asp-for="BankId" class="form-label fw-semibold">Select Bank</label>
+                    <select asp-for="BankId" class="form-select">
+                        <option value="">-- Select a Bank --</option>
+                        @if (Model.Banks != null)
+                        {
+                            @foreach (var bank in Model.Banks)
+                            {
+                                <option value="@bank.Id">@bank.Name (@bank.Code)</option>
+                            }
+                        }
+                    </select>
+                    <span asp-validation-for="BankId" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="AccountName" class="form-label fw-semibold">Account Name</label>
+                    <input asp-for="AccountName" class="form-control" placeholder="e.g., John Doe" />
+                    <span asp-validation-for="AccountName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="AccountNumber" class="form-label fw-semibold">Account Number</label>
+                    <input asp-for="AccountNumber" class="form-control" placeholder="e.g., 12345678" />
+                    <span asp-validation-for="AccountNumber" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="SortCode" class="form-label fw-semibold">Sort Code <span class="text-muted">(Optional)</span></label>
+                    <input asp-for="SortCode" class="form-control" placeholder="e.g., 12-34-56" />
+                    <span asp-validation-for="SortCode" class="text-danger"></span>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send me-1"></i>Submit Bank Details
+                    </button>
+                    <a asp-area="Client" asp-controller="Disbursement" asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

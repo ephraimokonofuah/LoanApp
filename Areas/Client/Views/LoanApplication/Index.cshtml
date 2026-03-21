@@ -1,0 +1,238 @@
+@model IEnumerable<LoanApp.Models.LoanApplication>
+
+@{
+    ViewData["Title"] = "My Dashboard";
+}
+
+<!-- Welcome Banner -->
+<div class="bg-primary text-white rounded-3 p-4 mb-4 shadow-sm">
+    <div class="d-flex justify-content-between align-items-center flex-wrap">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-person-circle me-2"></i>Welcome back, @ViewBag.UserName!</h2>
+            <p class="mb-0 opacity-75">Manage your loan applications and explore our services.</p>
+        </div>
+        @if ((bool)(ViewBag.HasApprovedEligibility ?? false))
+        {
+            <a asp-area="Client" asp-controller="LoanApplication" asp-action="Create"
+               asp-route-eligibilityId="@ViewBag.ApprovedEligibilityId"
+               class="btn btn-light btn-lg mt-2 mt-md-0">
+                <i class="bi bi-plus-circle me-1"></i> Apply for a Loan
+            </a>
+        }
+        else
+        {
+            <a asp-area="Client" asp-controller="Eligibility" asp-action="Check"
+               class="btn btn-warning btn-lg mt-2 mt-md-0">
+                <i class="bi bi-clipboard-check me-1"></i> Check Eligibility
+            </a>
+        }
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2" style="width:50px;height:50px;">
+                    <i class="bi bi-folder2-open text-primary fs-4"></i>
+                </div>
+                <h3 class="fw-bold mb-0">@ViewBag.TotalApplications</h3>
+                <small class="text-muted">Total Applications</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="rounded-circle bg-warning bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2" style="width:50px;height:50px;">
+                    <i class="bi bi-hourglass-split text-warning fs-4"></i>
+                </div>
+                <h3 class="fw-bold mb-0">@ViewBag.Pending</h3>
+                <small class="text-muted">Pending</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2" style="width:50px;height:50px;">
+                    <i class="bi bi-check-circle text-success fs-4"></i>
+                </div>
+                <h3 class="fw-bold mb-0">@ViewBag.Approved</h3>
+                <small class="text-muted">Approved</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center">
+                <div class="rounded-circle bg-danger bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-2" style="width:50px;height:50px;">
+                    <i class="bi bi-x-circle text-danger fs-4"></i>
+                </div>
+                <h3 class="fw-bold mb-0">@ViewBag.Rejected</h3>
+                <small class="text-muted">Rejected</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Services Section -->
+<h5 class="fw-bold mb-3"><i class="bi bi-grid me-2"></i>Our Services</h5>
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-primary bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width:64px;height:64px;">
+                    <i class="bi bi-cash-coin text-primary fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Personal Loan</h5>
+                <p class="text-muted small">Get funds for personal needs — medical bills, education, travel, or home improvements. Flexible repayment plans up to 60 months.</p>
+                <a asp-area="Client" asp-controller="Eligibility" asp-action="Check" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-clipboard-check me-1"></i>Check Eligibility
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-success bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width:64px;height:64px;">
+                    <i class="bi bi-briefcase text-success fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Business Loan</h5>
+                <p class="text-muted small">Grow your business with competitive rates. Fund inventory, equipment, or expansion projects with tailored repayment options.</p>
+                <a asp-area="Client" asp-controller="Eligibility" asp-action="Check" class="btn btn-outline-success btn-sm">
+                    <i class="bi bi-clipboard-check me-1"></i>Check Eligibility
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body text-center p-4">
+                <div class="rounded-circle bg-info bg-opacity-10 d-inline-flex align-items-center justify-content-center mb-3" style="width:64px;height:64px;">
+                    <i class="bi bi-mortarboard text-info fs-2"></i>
+                </div>
+                <h5 class="fw-bold">Education Loan</h5>
+                <p class="text-muted small">Invest in your future with affordable education financing. Cover tuition, books, and living expenses with low interest rates.</p>
+                <a asp-area="Client" asp-controller="Eligibility" asp-action="Check" class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-clipboard-check me-1"></i>Check Eligibility
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- My Applications Table -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3">
+        <h5 class="fw-bold mb-0"><i class="bi bi-list-ul me-2"></i>My Loan Applications</h5>
+        <span class="badge bg-primary rounded-pill">@ViewBag.TotalApplications</span>
+    </div>
+    <div class="card-body p-0">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Amount</th>
+                            <th>Purpose</th>
+                            <th>Duration</th>
+                            <th>Interest Rate</th>
+                            <th>Status</th>
+                            <th>Applied On</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="ps-3 fw-semibold">@item.LoanAmount.ToString("C")</td>
+                                <td>@item.LoanPurpose</td>
+                                <td>@item.DurationMonths months</td>
+                                <td>@item.InterestRate%</td>
+                                <td>
+                                    @if (item.Status == "Pending")
+                                    {
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                                    }
+                                    else if (item.Status == "Documents Requested")
+                                    {
+                                        <span class="badge bg-info"><i class="bi bi-file-earmark-arrow-up me-1"></i>Docs Requested</span>
+                                    }
+                                    else if (item.Status == "Approved")
+                                    {
+                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Approved</span>
+                                    }
+                                    else if (item.Status == "Rejected")
+                                    {
+                                        <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Rejected</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">@item.Status</span>
+                                    }
+                                </td>
+                                <td>@item.CreatedAt.ToString("dd MMM yyyy")</td>
+                                <td class="text-end pe-3">
+                                    <a asp-area="Client" asp-controller="LoanApplication" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary me-1" title="View Details">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    @if (item.DocumentsRequested)
+                                    {
+                                        <a asp-area="Client" asp-controller="LoanApplication" asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-info" title="Upload Documents">
+                                            <i class="bi bi-upload"></i>
+                                        </a>
+                                    }
+                                    @if (item.Status == "Approved")
+                                    {
+                                        var disbursements = (Dictionary<int, LoanApp.Models.LoanDisbursement>)(ViewBag.Disbursements ?? new Dictionary<int, LoanApp.Models.LoanDisbursement>());
+                                        if (disbursements.TryGetValue(item.Id, out var disb))
+                                        {
+                                            if (disb.Status == LoanApp.Models.DisbursementStatus.PendingSetup || disb.Status == LoanApp.Models.DisbursementStatus.BankSelected)
+                                            {
+                                                <a asp-area="Client" asp-controller="Disbursement" asp-action="Setup" asp-route-loanApplicationId="@item.Id" class="btn btn-sm btn-success" title="Setup Disbursement">
+                                                    <i class="bi bi-gear me-1"></i>Setup
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a asp-area="Client" asp-controller="Disbursement" asp-action="Details" asp-route-id="@disb.Id" class="btn btn-sm btn-outline-success" title="View Disbursement">
+                                                    <i class="bi bi-cash-stack"></i>
+                                                </a>
+                                            }
+                                        }
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <i class="bi bi-inbox text-muted" style="font-size:3rem;"></i>
+                <p class="text-muted mt-2 mb-3">You haven't applied for any loans yet.</p>
+                @if ((bool)(ViewBag.HasApprovedEligibility ?? false))
+                {
+                    <a asp-area="Client" asp-controller="LoanApplication" asp-action="Create"
+                       asp-route-eligibilityId="@ViewBag.ApprovedEligibilityId"
+                       class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i> Apply for Your First Loan
+                    </a>
+                }
+                else
+                {
+                    <a asp-area="Client" asp-controller="Eligibility" asp-action="Check" class="btn btn-warning">
+                        <i class="bi bi-clipboard-check me-1"></i> Check Eligibility First
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>

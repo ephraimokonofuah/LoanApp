@@ -1,0 +1,208 @@
+@model LoanApp.Models.EligibilityCheck
+@using LoanApp.Utility
+
+@{
+    ViewData["Title"] = "Eligibility Check Details";
+    var (monthly, total, interest) = LoanCalculator.Calculate(Model.DesiredLoanAmount, Model.InterestRate, Model.DurationMonths);
+    var monthlyRatePercent = Model.InterestRate / 12m;
+    var linkedApp = ViewBag.LinkedApplication as LoanApp.Models.LoanApplication;
+}
+
+<div class="container mt-4" style="max-width: 850px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="bi bi-clipboard-check me-2"></i>Eligibility Check #@Model.Id</h3>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Back to List
+        </a>
+    </div>
+
+    <!-- Eligibility Result Banner -->
+    <div class="card shadow-sm mb-4 @(Model.IsEligible ? "border-success" : "border-danger")">
+        <div class="card-body d-flex align-items-center">
+            @if (Model.IsEligible)
+            {
+                <i class="bi bi-check-circle-fill text-success fs-2 me-3"></i>
+                <div>
+                    <h5 class="mb-0 text-success">System: Eligible</h5>
+                    <small class="text-muted">@Model.EligibilityReason</small>
+                </div>
+            }
+            else
+            {
+                <i class="bi bi-x-circle-fill text-danger fs-2 me-3"></i>
+                <div>
+                    <h5 class="mb-0 text-danger">System: Not Eligible</h5>
+                    <small class="text-muted">@Model.EligibilityReason</small>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Admin Review Status -->
+    @if (Model.Status != "Pending")
+    {
+        <div class="alert @(Model.Status == "Approved" ? "alert-success" : "alert-danger") mb-4">
+            <strong>Admin Decision: @Model.Status</strong>
+            @if (!string.IsNullOrEmpty(Model.AdminNotes))
+            {
+                <p class="mb-0 mt-1">@Model.AdminNotes</p>
+            }
+            @if (Model.ReviewedAt.HasValue)
+            {
+                <small class="d-block mt-1">Reviewed on @Model.ReviewedAt.Value.ToString("dd MMM yyyy, hh:mm tt")</small>
+            }
+        </div>
+    }
+
+    <!-- Linked Application -->
+    @if (linkedApp != null)
+    {
+        <div class="alert alert-info mb-4">
+            <i class="bi bi-link-45deg me-2"></i>
+            <strong>Linked Loan Application:</strong>
+            <a asp-area="Admin" asp-controller="LoanApplication" asp-action="Details" asp-route-id="@linkedApp.Id" class="alert-link">
+                Application #@linkedApp.Id — @linkedApp.Status
+            </a>
+        </div>
+    }
+
+    <!-- Applicant Information -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="bi bi-person me-2"></i>Applicant Information</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="text-muted small">Full Name</div>
+                    <div class="fw-bold">@Model.FullName</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Email</div>
+                    <div class="fw-bold">@Model.User?.Email</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Date of Birth</div>
+                    <div class="fw-bold">@Model.DateOfBirth.ToString("dd MMM yyyy")</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Employment Status</div>
+                    <div class="fw-bold">@Model.EmploymentStatus</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Credit Score Range</div>
+                    <div class="fw-bold">@Model.CreditScoreRange</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Checked On</div>
+                    <div class="fw-bold">@Model.CreatedAt.ToString("dd MMM yyyy, hh:mm tt")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Summary -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="bi bi-cash-stack me-2"></i>Financial Summary</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="text-muted small">Monthly Income</div>
+                    <div class="fw-bold text-success fs-5">@Model.MonthlyIncome.ToString("C")</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-muted small">Monthly Expenses</div>
+                    <div class="fw-bold text-danger fs-5">@Model.MonthlyExpenses.ToString("C")</div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-muted small">Disposable Income</div>
+                    <div class="fw-bold text-primary fs-5">@((Model.MonthlyIncome - Model.MonthlyExpenses).ToString("C"))</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repayment Breakdown -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light">
+            <h6 class="mb-0"><i class="bi bi-calculator me-2"></i>Loan Repayment Breakdown</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Loan Type</div>
+                    <div class="fw-bold">@Model.LoanType?.Name</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Loan Amount</div>
+                    <div class="fw-bold">@Model.DesiredLoanAmount.ToString("C")</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Duration</div>
+                    <div class="fw-bold">@Model.DurationMonths months</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Annual Rate</div>
+                    <div class="fw-bold text-primary">@Model.InterestRate%</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Monthly Rate</div>
+                    <div class="fw-bold text-info">@monthlyRatePercent.ToString("F4")% p.m.</div>
+                </div>
+                <div class="col-6 col-md-4">
+                    <div class="text-muted small">Monthly Repayment</div>
+                    <div class="fw-bold text-success fs-5">@monthly.ToString("C")</div>
+                </div>
+            </div>
+            <hr />
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="text-muted small">Total Repayment</div>
+                    <div class="fw-bold fs-5">@Model.DurationMonths &times; @monthly.ToString("C") = @total.ToString("C")</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="text-muted small">Total Interest Cost</div>
+                    <div class="fw-bold text-danger fs-5">@interest.ToString("C")</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Actions -->
+    @if (Model.Status == "Pending")
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="bi bi-gear me-2"></i>Admin Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <form asp-action="Approve" method="post">
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <div class="mb-2">
+                                <textarea name="adminNotes" class="form-control" rows="2" placeholder="Optional notes for approval..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-check-circle me-1"></i>Approve Eligibility
+                            </button>
+                        </form>
+                    </div>
+                    <div class="col-md-6">
+                        <form asp-action="Reject" method="post">
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <div class="mb-2">
+                                <textarea name="adminNotes" class="form-control" rows="2" placeholder="Optional reason for rejection..."></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-danger w-100">
+                                <i class="bi bi-x-circle me-1"></i>Reject Eligibility
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>

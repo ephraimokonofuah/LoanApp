@@ -1,0 +1,201 @@
+@model LoanApp.Models.ViewModels.EligibilityCheckViewModel
+
+@{
+    ViewData["Title"] = "Check Loan Eligibility";
+    var loanTypes = ViewBag.LoanTypes as List<LoanApp.Models.LoanType>;
+}
+
+<div class="container mt-4" style="max-width: 750px;">
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-warning alert-dismissible fade show mb-3" role="alert">
+            <i class="bi bi-info-circle me-2"></i>@TempData["Info"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Check Your Loan Eligibility</h4>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info border-0 mb-4">
+                <i class="bi bi-shield-check me-2 fs-5"></i>
+                <strong>Your privacy is protected.</strong> This check will <strong>NOT</strong> affect your credit score
+                in any way and is not recorded with any credit bureau. It is used only to assess your eligibility within our system.
+            </div>
+
+            <form asp-action="Check" method="post">
+                <h6 class="fw-bold text-muted mb-3"><i class="bi bi-person me-1"></i>Personal Information</h6>
+
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label fw-semibold"></label>
+                    <input asp-for="FullName" class="form-control" placeholder="Enter your full name" />
+                    <span asp-validation-for="FullName" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="DateOfBirth" class="form-label fw-semibold"></label>
+                    <input asp-for="DateOfBirth" class="form-control" type="date" />
+                    <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="EmploymentStatus" class="form-label fw-semibold"></label>
+                    <select asp-for="EmploymentStatus" asp-items="Html.GetEnumSelectList<LoanApp.Models.EmploymentStatus>()" class="form-select">
+                        <option value="">-- Select --</option>
+                    </select>
+                    <span asp-validation-for="EmploymentStatus" class="text-danger"></span>
+                </div>
+
+                <hr class="my-4" />
+                <h6 class="fw-bold text-muted mb-3"><i class="bi bi-cash-stack me-1"></i>Financial Information</h6>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MonthlyIncome" class="form-label fw-semibold"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input asp-for="MonthlyIncome" class="form-control" placeholder="e.g., 5000" id="monthlyIncomeInput" />
+                        </div>
+                        <span asp-validation-for="MonthlyIncome" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="MonthlyExpenses" class="form-label fw-semibold"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input asp-for="MonthlyExpenses" class="form-control" placeholder="e.g., 2000" id="monthlyExpensesInput" />
+                        </div>
+                        <span asp-validation-for="MonthlyExpenses" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="CreditScoreRange" class="form-label fw-semibold"></label>
+                    <select asp-for="CreditScoreRange" asp-items="Html.GetEnumSelectList<LoanApp.Models.CreditScoreRange>()" class="form-select">
+                        <option value="">-- Select --</option>
+                    </select>
+                    <div class="form-text text-muted">
+                        <i class="bi bi-lock me-1"></i>This is a self-reported estimate and will not be verified externally.
+                    </div>
+                    <span asp-validation-for="CreditScoreRange" class="text-danger"></span>
+                </div>
+
+                <hr class="my-4" />
+                <h6 class="fw-bold text-muted mb-3"><i class="bi bi-bank me-1"></i>Loan Details</h6>
+
+                <div class="mb-3">
+                    <label asp-for="LoanTypeId" class="form-label fw-semibold"></label>
+                    <select asp-for="LoanTypeId" class="form-select" id="loanTypeSelect">
+                        <option value="">-- Select a Loan Type --</option>
+                        @if (loanTypes != null)
+                        {
+                            @foreach (var lt in loanTypes)
+                            {
+                                <option value="@lt.Id" data-interest="@lt.InterestRate" data-description="@lt.Description">@lt.Name — @lt.InterestRate% p.a.</option>
+                            }
+                        }
+                    </select>
+                    <div id="loanTypeDescription" class="form-text text-muted mt-1" style="display:none;"></div>
+                    <span asp-validation-for="LoanTypeId" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DesiredLoanAmount" class="form-label fw-semibold"></label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input asp-for="DesiredLoanAmount" class="form-control" placeholder="e.g., 50000" id="loanAmountInput" />
+                        </div>
+                        <span asp-validation-for="DesiredLoanAmount" class="text-danger"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="DurationMonths" class="form-label fw-semibold"></label>
+                        <input asp-for="DurationMonths" class="form-control" type="number" min="1" max="360" placeholder="e.g., 12" id="durationInput" />
+                        <span asp-validation-for="DurationMonths" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Live Repayment Preview -->
+                <div id="repaymentPreview" class="card border-0 shadow-sm bg-light mt-3" style="display:none;">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3"><i class="bi bi-calculator me-2 text-primary"></i>Estimated Repayment Preview</h6>
+                        <div class="row g-3">
+                            <div class="col-6 col-md-4">
+                                <div class="text-muted small">Monthly Repayment</div>
+                                <div class="fw-bold text-success fs-5" id="previewMonthly">-</div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="text-muted small">Total Repayment</div>
+                                <div class="fw-bold" id="previewTotal">-</div>
+                            </div>
+                            <div class="col-6 col-md-4">
+                                <div class="text-muted small">Total Interest</div>
+                                <div class="fw-bold text-danger" id="previewInterest">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 mt-4">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-search me-2"></i>Check My Eligibility
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="text-center mt-3">
+        <a asp-action="Index" class="text-decoration-none"><i class="bi bi-arrow-left me-1"></i>Back to My Eligibility Checks</a>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(document).ready(function () {
+            var selectedInterestRate = 0;
+
+            $('#loanTypeSelect').on('change', function () {
+                var selected = $(this).find(':selected');
+                var rate = parseFloat(selected.data('interest')) || 0;
+                var desc = selected.data('description') || '';
+                selectedInterestRate = rate;
+                if (desc) {
+                    $('#loanTypeDescription').text(desc).show();
+                } else {
+                    $('#loanTypeDescription').hide();
+                }
+                updatePreview();
+            });
+
+            $('#loanAmountInput, #durationInput').on('input', function () {
+                updatePreview();
+            });
+
+            function updatePreview() {
+                var amount = parseFloat($('#loanAmountInput').val()) || 0;
+                var months = parseInt($('#durationInput').val()) || 0;
+                var rate = selectedInterestRate;
+
+                if (amount > 0 && months > 0 && rate > 0) {
+                    var r = rate / 100 / 12;
+                    var n = months;
+                    var pow = Math.pow(1 + r, n);
+                    var emi = amount * (r * pow) / (pow - 1);
+
+                    var monthly = Math.round(emi * 100) / 100;
+                    var total = Math.round(monthly * n * 100) / 100;
+                    var interest = Math.round((total - amount) * 100) / 100;
+
+                    $('#previewMonthly').text('$' + monthly.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+                    $('#previewTotal').text(n + ' × $' + monthly.toLocaleString('en-US', { minimumFractionDigits: 2 }) + ' = $' + total.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+                    $('#previewInterest').text('$' + interest.toLocaleString('en-US', { minimumFractionDigits: 2 }));
+                    $('#repaymentPreview').slideDown();
+                } else {
+                    $('#repaymentPreview').slideUp();
+                }
+            }
+        });
+    </script>
+}

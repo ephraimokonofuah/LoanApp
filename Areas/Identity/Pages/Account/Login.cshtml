@@ -1,0 +1,77 @@
+﻿@page
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Log in";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-lg-5 col-md-7">
+        <div class="text-center mb-4">
+            <i class="bi bi-bank text-primary" style="font-size: 3rem;"></i>
+            <h3 class="mt-2 fw-bold">Welcome Back</h3>
+            <p class="text-muted">Sign in to your LoanApp account</p>
+        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                @if (ViewData["BanReason"] != null)
+                {
+                    <div class="alert alert-danger border-0 shadow-sm mb-3">
+                        <div class="d-flex align-items-start">
+                            <i class="bi bi-shield-exclamation fs-4 me-3 mt-1"></i>
+                            <div>
+                                <h6 class="alert-heading fw-bold mb-1">Account Suspended</h6>
+                                <p class="mb-1">Your account has been suspended by an administrator and you cannot log in.</p>
+                                <hr class="my-2">
+                                <p class="mb-0 small"><strong>Reason:</strong> @ViewData["BanReason"]</p>
+                                @if (ViewData["BannedAt"] is DateTime bannedAt)
+                                {
+                                    <p class="mb-0 small"><strong>Since:</strong> @bannedAt.ToString("dd MMMM yyyy, HH:mm")</p>
+                                }
+                                <p class="mb-0 small mt-2 text-muted">
+                                    <i class="bi bi-envelope me-1"></i>Contact <strong>support&#64;loanapp.com</strong> to request a review.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                }
+                <form id="account" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                        <label asp-for="Input.Email" class="form-label"><i class="bi bi-envelope me-1"></i>Email</label>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+                        <label asp-for="Input.Password" class="form-label"><i class="bi bi-lock me-1"></i>Password</label>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" asp-for="Input.RememberMe" />
+                            <label asp-for="Input.RememberMe" class="form-check-label">
+                                @Html.DisplayNameFor(m => m.Input.RememberMe)
+                            </label>
+                        </div>
+                        <a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none small">Forgot password?</a>
+                    </div>
+                    <div class="d-grid">
+                        <button id="login-submit" type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Log in
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="text-center mt-3">
+            <p class="text-muted mb-0">Don't have an account?
+                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none fw-semibold">Create one</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

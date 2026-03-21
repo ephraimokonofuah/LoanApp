@@ -1,0 +1,152 @@
+@model List<LoanApp.Models.LoanDisbursement>
+
+@{
+    ViewData["Title"] = "Loan Disbursements";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-cash-stack text-primary me-2"></i>Loan Disbursements</h2>
+            <p class="text-muted mb-0">Review and manage loan disbursement payments.</p>
+        </div>
+    </div>
+
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-1"></i> @TempData["success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle me-1"></i> @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h4 class="fw-bold mb-0">@Model.Count</h4>
+                    <small class="text-muted">Total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h4 class="fw-bold text-warning mb-0">@Model.Count(d => d.Status == LoanApp.Models.DisbursementStatus.PendingSetup || d.Status == LoanApp.Models.DisbursementStatus.BankSelected || d.Status == LoanApp.Models.DisbursementStatus.AccountDetailsSubmitted)</h4>
+                    <small class="text-muted">In Progress</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h4 class="fw-bold text-info mb-0">@Model.Count(d => d.Status == LoanApp.Models.DisbursementStatus.ReadyForPayment)</h4>
+                    <small class="text-muted">Ready to Pay</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h4 class="fw-bold text-success mb-0">@Model.Count(d => d.Status == LoanApp.Models.DisbursementStatus.Paid)</h4>
+                    <small class="text-muted">Paid</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h4 class="fw-bold text-danger mb-0">@Model.Count(d => d.Status == LoanApp.Models.DisbursementStatus.Failed)</h4>
+                    <small class="text-muted">Failed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Disbursements Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table id="disbursementTable" class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">ID</th>
+                            <th>Applicant</th>
+                            <th>Application #</th>
+                            <th>Bank</th>
+                            <th>Approved Amount</th>
+                            <th>Paid Amount</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var d in Model)
+                        {
+                            <tr>
+                                <td class="ps-3">@d.Id</td>
+                                <td>@(d.User?.FullName ?? "N/A")</td>
+                                <td>
+                                    <a asp-area="Admin" asp-controller="LoanApplication" asp-action="Details" asp-route-id="@d.LoanApplicationId">
+                                        #@d.LoanApplicationId
+                                    </a>
+                                </td>
+                                <td>@(d.Bank?.Name ?? "<em>Not Selected</em>")</td>
+                                <td class="fw-semibold">@d.ApprovedAmount.ToString("C")</td>
+                                <td>@(d.PaidAmount > 0 ? d.PaidAmount.ToString("C") : "—")</td>
+                                <td>
+                                    @switch (d.Status)
+                                    {
+                                        case LoanApp.Models.DisbursementStatus.PendingSetup:
+                                            <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Pending Setup</span>
+                                            break;
+                                        case LoanApp.Models.DisbursementStatus.BankSelected:
+                                            <span class="badge bg-info"><i class="bi bi-bank me-1"></i>Bank Selected</span>
+                                            break;
+                                        case LoanApp.Models.DisbursementStatus.AccountDetailsSubmitted:
+                                            <span class="badge bg-primary"><i class="bi bi-credit-card me-1"></i>Details Submitted</span>
+                                            break;
+                                        case LoanApp.Models.DisbursementStatus.ReadyForPayment:
+                                            <span class="badge bg-warning text-dark"><i class="bi bi-cash me-1"></i>Ready for Payment</span>
+                                            break;
+                                        case LoanApp.Models.DisbursementStatus.Paid:
+                                            <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Paid</span>
+                                            break;
+                                        case LoanApp.Models.DisbursementStatus.Failed:
+                                            <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Failed</span>
+                                            break;
+                                    }
+                                </td>
+                                <td>@d.CreatedAt.ToString("dd MMM yyyy")</td>
+                                <td class="text-end pe-3">
+                                    <a asp-action="Details" asp-route-id="@d.Id" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye me-1"></i>Review
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#disbursementTable').DataTable({
+                order: [[0, 'desc']]
+            });
+        });
+    </script>
+}

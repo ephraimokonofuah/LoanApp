@@ -1,0 +1,201 @@
+@model List<LoanApp.Models.SupportTicket>
+
+@{
+    ViewData["Title"] = "Support Tickets";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold mb-1"><i class="bi bi-headset text-primary me-2"></i>Support Tickets</h2>
+            <p class="text-muted mb-0">Manage and respond to user support requests.</p>
+        </div>
+    </div>
+
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-1"></i> @TempData["success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle me-1"></i> @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="mb-1"><i class="bi bi-ticket-detailed text-primary" style="font-size: 1.5rem;"></i></div>
+                    <h4 class="fw-bold mb-0">@ViewBag.TotalTickets</h4>
+                    <small class="text-muted">Total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="mb-1"><i class="bi bi-envelope-open text-primary" style="font-size: 1.5rem;"></i></div>
+                    <h4 class="fw-bold mb-0">@ViewBag.OpenTickets</h4>
+                    <small class="text-muted">Open</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="mb-1"><i class="bi bi-gear text-info" style="font-size: 1.5rem;"></i></div>
+                    <h4 class="fw-bold mb-0">@ViewBag.InProgressTickets</h4>
+                    <small class="text-muted">In Progress</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="mb-1"><i class="bi bi-hourglass-split text-warning" style="font-size: 1.5rem;"></i></div>
+                    <h4 class="fw-bold mb-0">@ViewBag.AwaitingResponse</h4>
+                    <small class="text-muted">Awaiting</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="mb-1"><i class="bi bi-check-circle text-success" style="font-size: 1.5rem;"></i></div>
+                    <h4 class="fw-bold mb-0">@ViewBag.ResolvedTickets</h4>
+                    <small class="text-muted">Resolved</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body text-center py-3">
+                    <div class="mb-1"><i class="bi bi-lock text-secondary" style="font-size: 1.5rem;"></i></div>
+                    <h4 class="fw-bold mb-0">@ViewBag.ClosedTickets</h4>
+                    <small class="text-muted">Closed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tickets Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <table id="ticketTable" class="table table-hover align-middle" style="width:100%">
+                <thead class="table-light">
+                    <tr>
+                        <th>Ticket #</th>
+                        <th>Subject</th>
+                        <th>User</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                        <th>Messages</th>
+                        <th>Last Updated</th>
+                        <th></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#ticketTable').DataTable({
+                ajax: {
+                    url: '@Url.Action("GetAll", "Support", new { area = "Admin" })',
+                    dataSrc: 'data'
+                },
+                columns: [
+                    {
+                        data: 'ticketNumber',
+                        render: function (data, type, row) {
+                            var badge = row.isReadByAdmin ? '' : ' <span class="badge bg-danger" style="font-size:0.55rem;">NEW</span>';
+                            var cls = row.isReadByAdmin ? '' : ' fw-bold';
+                            return '<span class="text-primary fw-semibold' + cls + '">' + data + '</span>' + badge;
+                        }
+                    },
+                    {
+                        data: 'subject',
+                        render: function (data, type, row) {
+                            return row.isReadByAdmin ? data : '<strong>' + data + '</strong>';
+                        }
+                    },
+                    { data: 'user' },
+                    {
+                        data: 'category',
+                        render: function (data) {
+                            return '<span class="badge bg-light text-dark border">' + data + '</span>';
+                        }
+                    },
+                    {
+                        data: 'priority',
+                        render: function (data) {
+                            var colors = { 'Low': 'secondary', 'Medium': 'info', 'High': 'warning', 'Urgent': 'danger' };
+                            var textClass = data === 'High' ? ' text-dark' : '';
+                            return '<span class="badge bg-' + (colors[data] || 'secondary') + textClass + '">' + data + '</span>';
+                        }
+                    },
+                    {
+                        data: 'status',
+                        render: function (data) {
+                            var colors = {
+                                'Open': 'primary',
+                                'InProgress': 'info',
+                                'AwaitingResponse': 'warning',
+                                'Resolved': 'success',
+                                'Closed': 'secondary'
+                            };
+                            var labels = {
+                                'Open': 'Open',
+                                'InProgress': 'In Progress',
+                                'AwaitingResponse': 'Awaiting',
+                                'Resolved': 'Resolved',
+                                'Closed': 'Closed'
+                            };
+                            var textClass = data === 'AwaitingResponse' ? ' text-dark' : '';
+                            return '<span class="badge bg-' + (colors[data] || 'secondary') + textClass + '">' + (labels[data] || data) + '</span>';
+                        }
+                    },
+                    {
+                        data: 'assignedTo',
+                        render: function (data) {
+                            if (data === 'Unassigned') {
+                                return '<span class="text-muted fst-italic">Unassigned</span>';
+                            }
+                            return '<i class="bi bi-person-badge me-1"></i>' + data;
+                        }
+                    },
+                    {
+                        data: 'messages',
+                        render: function (data) {
+                            return '<span class="badge bg-light text-dark border"><i class="bi bi-chat-left-text me-1"></i>' + data + '</span>';
+                        }
+                    },
+                    { data: 'lastUpdated' },
+                    {
+                        data: 'id',
+                        render: function (data) {
+                            return '<a href="/Admin/Support/Details/' + data + '" class="btn btn-sm btn-outline-primary"><i class="bi bi-eye me-1"></i>View</a>';
+                        },
+                        orderable: false
+                    }
+                ],
+                order: [[8, 'desc']],
+                language: {
+                    emptyTable: "No support tickets found"
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,121 @@
+@{
+    ViewData["Title"] = "Create Support Ticket";
+}
+
+<div class="container mt-4" style="max-width: 720px;">
+    <a asp-action="Index" class="btn btn-outline-secondary mb-3">
+        <i class="bi bi-arrow-left me-1"></i> Back to Tickets
+    </a>
+
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle me-1"></i> @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-primary text-white py-3">
+            <h5 class="mb-0"><i class="bi bi-envelope-plus me-2"></i>Create Support Ticket</h5>
+        </div>
+        <div class="card-body p-4">
+            <div class="text-center mb-4">
+                <i class="bi bi-headset text-primary" style="font-size: 3rem;"></i>
+                <p class="text-muted mt-2">Describe your issue and our support team will respond as soon as possible.</p>
+            </div>
+
+            <form method="post" asp-action="Create">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-tag me-1"></i>Category
+                        </label>
+                        <select name="category" class="form-select" required>
+                            <option value="0">General Inquiry</option>
+                            <option value="1">Loan Application</option>
+                            <option value="2">Disbursement</option>
+                            <option value="3">Account Issue</option>
+                            <option value="4">Document Upload</option>
+                            <option value="5">Payment Issue</option>
+                            <option value="6">Technical Support</option>
+                            <option value="7">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-flag me-1"></i>Priority
+                        </label>
+                        <select name="priority" class="form-select" required>
+                            <option value="0">Low</option>
+                            <option value="1" selected>Medium</option>
+                            <option value="2">High</option>
+                            <option value="3">Urgent</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-pencil me-1"></i>Subject
+                        </label>
+                        <input type="text" name="subject" class="form-control" maxlength="150"
+                               placeholder="Brief summary of your issue" required />
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">
+                            <i class="bi bi-chat-left-text me-1"></i>Message
+                        </label>
+                        <textarea name="message" class="form-control" rows="6"
+                                  placeholder="Please describe your issue in detail. Include any relevant information such as loan application ID, error messages, or steps to reproduce the problem..."
+                                  required></textarea>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-send me-1"></i>Submit Ticket
+                    </button>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tips Card -->
+    <div class="card border-0 shadow-sm mt-4">
+        <div class="card-body">
+            <h6 class="fw-semibold mb-3"><i class="bi bi-lightbulb text-warning me-2"></i>Tips for Faster Resolution</h6>
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-1-circle text-primary me-2 mt-1"></i>
+                        <div>
+                            <small class="fw-semibold">Be Specific</small><br/>
+                            <small class="text-muted">Include IDs, dates, and exact error messages.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-2-circle text-primary me-2 mt-1"></i>
+                        <div>
+                            <small class="fw-semibold">Choose Right Category</small><br/>
+                            <small class="text-muted">Helps route your ticket to the right team.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-3-circle text-primary me-2 mt-1"></i>
+                        <div>
+                            <small class="fw-semibold">Set Priority Accurately</small><br/>
+                            <small class="text-muted">Urgent issues get escalated faster.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
