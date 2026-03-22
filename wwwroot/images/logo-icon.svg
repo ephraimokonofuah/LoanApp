@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="48" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0d6efd"/>
+      <stop offset="100%" stop-color="#0a58ca"/>
+    </linearGradient>
+  </defs>
+  <!-- Rounded square -->
+  <rect width="48" height="48" rx="10" fill="url(#bg)"/>
+  <!-- Shield -->
+  <path d="M24 7L10 13v9c0 8.6 5.97 16.62 14 18.85C32.03 38.62 38 30.6 38 22V13L24 7z" fill="white" opacity="0.15"/>
+  <path d="M24 7L10 13v9c0 8.6 5.97 16.62 14 18.85C32.03 38.62 38 30.6 38 22V13L24 7z" stroke="white" stroke-width="2" fill="none"/>
+  <!-- Dollar sign -->
+  <text x="24" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="18" fill="white">$</text>
+</svg>

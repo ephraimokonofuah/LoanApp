@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 48" fill="none">
+  <!-- Shield icon -->
+  <g transform="translate(4, 2)">
+    <!-- Shield body -->
+    <path d="M22 4L6 10v10c0 9.55 6.82 18.48 16 20.63C31.18 38.48 38 29.55 38 20V10L22 4z" fill="#ffffff" opacity="0.2"/>
+    <path d="M22 4L6 10v10c0 9.55 6.82 18.48 16 20.63C31.18 38.48 38 29.55 38 20V10L22 4z" stroke="#ffffff" stroke-width="2" fill="none"/>
+    <!-- Dollar sign inside shield -->
+    <text x="22" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-weight="bold" font-size="18" fill="#ffffff">$</text>
+  </g>
+  <!-- Text -->
+  <text x="52" y="34" font-family="'Segoe UI', Arial, sans-serif" font-weight="700" font-size="26" fill="#ffffff" letter-spacing="0.5">
+    <tspan>Loan</tspan><tspan fill="#ffc107">App</tspan>
+  </text>
+</svg>

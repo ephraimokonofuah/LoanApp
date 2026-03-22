@@ -1,104 +1,564 @@
 ﻿@{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home";
+    var loanTypes = ViewBag.LoanTypes as List<LoanApp.Models.LoanType> ?? new List<LoanApp.Models.LoanType>();
+    var siteSettings = ViewBag.SiteSettings as LoanApp.Models.SiteSettings;
+    var siteName = siteSettings?.SiteName ?? "LoanApp";
 }
 
-<!-- Hero Section -->
-
-    <div class="row align-items-center">
-
-        <!-- Text Content -->
-        <div class="col-lg-6">
-            <h1 class="display-4 fw-bold">Fast & Reliable Loans</h1>
-            <p class="lead text-muted">
-                Apply for personal or business loans in minutes. Our simple process 
-                helps you get the funds you need without unnecessary delays.
-            </p>
-
-            <div class="mt-4">
-                <a asp-area="Client" asp-controller="LoanApplication" asp-action="Create" class="btn btn-primary btn-lg me-3">
-                    Apply for a Loan
-                </a>
-
-                <a asp-area="Client" asp-controller="LoanApplication" asp-action="Index" class="btn btn-outline-secondary btn-lg">
-                    Check Applications
-                </a>
+<!-- ========== HERO SECTION ========== -->
+<section class="hero-section position-relative overflow-hidden rounded-4 mb-5">
+    <div class="hero-gradient"></div>
+    <div class="container position-relative" style="z-index: 2;">
+        <div class="row align-items-center min-vh-75 py-5">
+            <div class="col-lg-6 text-white">
+                <span class="badge bg-warning text-dark px-3 py-2 mb-3 rounded-pill fw-semibold">
+                    <i class="bi bi-lightning-charge-fill me-1"></i>Loans Approved in 24 Hours
+                </span>
+                <h1 class="display-3 fw-bold lh-sm mb-3">
+                    Your Financial Goals,<br>
+                    <span class="text-warning">Made Possible.</span>
+                </h1>
+                <p class="lead opacity-75 mb-4" style="max-width: 500px;">
+                    Whether it's a new home, education, business, or personal needs — 
+                    we offer competitive rates, transparent terms, and a seamless digital experience.
+                </p>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <a asp-area="Client" asp-controller="Eligibility" asp-action="Check" class="btn btn-warning btn-lg px-4 fw-semibold shadow">
+                        <i class="bi bi-check-circle me-2"></i>Check Eligibility
+                    </a>
+                    <a href="#loan-products" class="btn btn-outline-light btn-lg px-4">
+                        <i class="bi bi-arrow-down-circle me-2"></i>Explore Products
+                    </a>
+                </div>
+                <div class="d-flex gap-4 mt-4">
+                    <div class="text-center">
+                        <h3 class="fw-bold text-warning mb-0">$50M+</h3>
+                        <small class="opacity-75">Loans Disbursed</small>
+                    </div>
+                    <div class="vr bg-white opacity-25"></div>
+                    <div class="text-center">
+                        <h3 class="fw-bold text-warning mb-0">15K+</h3>
+                        <small class="opacity-75">Happy Clients</small>
+                    </div>
+                    <div class="vr bg-white opacity-25"></div>
+                    <div class="text-center">
+                        <h3 class="fw-bold text-warning mb-0">@(loanTypes.Any() ? loanTypes.Min(lt => lt.InterestRate).ToString("0.#") : "3.5")%</h3>
+                        <small class="opacity-75">Rates From</small>
+                    </div>
+                </div>
             </div>
-
-            <div class="mt-4 text-muted">
-                <small>✔ Quick Approval</small><br>
-                <small>✔ Transparent Interest Rates</small><br>
-                <small>✔ Flexible Repayment Plans</small>
+            <div class="col-lg-6 d-none d-lg-block text-center">
+                <div class="hero-image-wrapper">
+                    <div class="hero-card card border-0 shadow-lg p-4" style="max-width: 400px; margin: 0 auto;">
+                        <div class="text-center mb-3">
+                            <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 64px; height: 64px;">
+                                <i class="bi bi-calculator fs-2 text-primary"></i>
+                            </div>
+                        </div>
+                        <h5 class="fw-bold text-center mb-3">Quick Estimate</h5>
+                        <div class="bg-light rounded-3 p-3 mb-2">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted small">Loan Amount</span>
+                                <span class="fw-semibold">$25,000</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted small">Interest Rate</span>
+                                <span class="fw-semibold">5.5%</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-muted small">Duration</span>
+                                <span class="fw-semibold">36 months</span>
+                            </div>
+                            <hr class="my-2">
+                            <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Monthly Payment</span>
+                                <span class="fw-bold text-success fs-5">$753.97</span>
+                            </div>
+                        </div>
+                        <a asp-area="Client" asp-controller="Eligibility" asp-action="Check" class="btn btn-primary w-100 mt-2">
+                            Calculate Yours <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
-
-        <!-- Image Section -->
-        <div class="col-lg-6 text-center">
-            <img src="https://images.unsplash.com/photo-1554224155-6726b3ff858f"
-                 class="img-fluid rounded shadow"
-                 alt="Loan service">
-        </div>
-
     </div>
+</section>
 
+<!-- ========== TRUST BAR ========== -->
+<section class="py-4 mb-5">
+    <div class="container">
+        <div class="row g-3 text-center">
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-shield-lock-fill fs-4 text-success"></i>
+                    <span class="fw-semibold small">256-bit SSL Encrypted</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-bank fs-4 text-primary"></i>
+                    <span class="fw-semibold small">FDIC Insured</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-clock-history fs-4 text-warning"></i>
+                    <span class="fw-semibold small">24hr Approval</span>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="d-flex align-items-center justify-content-center gap-2">
+                    <i class="bi bi-headset fs-4 text-info"></i>
+                    <span class="fw-semibold small">Dedicated Support</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-<!-- Features Section -->
-<div class="bg-light py-5 my-5 rounded">
+<!-- ========== HOW IT WORKS ========== -->
+<section class="mb-5">
     <div class="container">
         <div class="text-center mb-5">
-            <h2>Why Choose Our Loan Platform?</h2>
-            <p class="text-muted">Simple, transparent and secure loan management</p>
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-2">Simple Process</span>
+            <h2 class="display-6 fw-bold">How It Works</h2>
+            <p class="text-muted mx-auto" style="max-width: 550px;">Get funded in four easy steps — no paperwork headaches, no hidden fees.</p>
         </div>
-
         <div class="row g-4">
-
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm h-100 text-center p-3">
-                    <div class="card-body">
-                        <h4>Easy Application</h4>
-                        <p class="text-muted">
-                            Complete your loan application in just a few minutes
-                            using our simple online form.
-                        </p>
-                    </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center position-relative">
+                    <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; font-size: 1.25rem; font-weight: 700;">1</div>
+                    <h5 class="fw-bold">Check Eligibility</h5>
+                    <p class="text-muted small">Answer a few questions and instantly see if you qualify and your estimated rate.</p>
                 </div>
             </div>
-
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm h-100 text-center p-3">
-                    <div class="card-body">
-                        <h4>Quick Approval</h4>
-                        <p class="text-muted">
-                            Our system processes loan requests quickly so you
-                            can get the funds you need.
-                        </p>
-                    </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center position-relative">
+                    <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; font-size: 1.25rem; font-weight: 700;">2</div>
+                    <h5 class="fw-bold">Apply Online</h5>
+                    <p class="text-muted small">Complete your application in minutes with our secure digital form.</p>
                 </div>
             </div>
-
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm h-100 text-center p-3">
-                    <div class="card-body">
-                        <h4>Flexible Repayment</h4>
-                        <p class="text-muted">
-                            Choose repayment plans that fit your financial
-                            situation comfortably.
-                        </p>
-                    </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center position-relative">
+                    <div class="step-number bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; font-size: 1.25rem; font-weight: 700;">3</div>
+                    <h5 class="fw-bold">Get Approved</h5>
+                    <p class="text-muted small">Our team reviews your application and you get a decision within 24 hours.</p>
                 </div>
             </div>
-
+            <div class="col-md-6 col-lg-3">
+                <div class="text-center position-relative">
+                    <div class="step-number bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 56px; height: 56px; font-size: 1.25rem; font-weight: 700;">4</div>
+                    <h5 class="fw-bold">Receive Funds</h5>
+                    <p class="text-muted small">Funds are disbursed directly to your account with a clear repayment schedule.</p>
+                </div>
+            </div>
         </div>
     </div>
-</div>
+</section>
 
-<!-- Call To Action -->
-<div class="container py-5 text-center">
-    <h2>Need a Loan Today?</h2>
-    <p class="text-muted">
-        Start your loan application now and receive a decision quickly.
-    </p>
+<!-- ========== LOAN PRODUCTS ========== -->
+<section id="loan-products" class="bg-light py-5 rounded-4 mb-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill mb-2">Our Products</span>
+            <h2 class="display-6 fw-bold">Loan Products Tailored for You</h2>
+            <p class="text-muted mx-auto" style="max-width: 550px;">From personal goals to major investments, we have the right loan for every need.</p>
+        </div>
+        <div class="row g-4">
+            <!-- Personal Loan -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100 loan-product-card">
+                    <div class="card-body p-4">
+                        <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 52px; height: 52px;">
+                            <i class="bi bi-person-fill fs-4 text-primary"></i>
+                        </div>
+                        <h5 class="fw-bold">Personal Loan</h5>
+                        <p class="text-muted small mb-3">For medical bills, vacations, weddings, or unexpected expenses. Fast and flexible.</p>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">Interest Rate</span>
+                            <span class="badge bg-primary bg-opacity-10 text-primary">From @(loanTypes.FirstOrDefault(l => l.Name.Contains("Personal"))?.InterestRate.ToString("0.#") ?? "12.0")%</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Max Amount</span>
+                            <span class="fw-semibold">$50,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Business Loan -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100 loan-product-card">
+                    <div class="card-body p-4">
+                        <div class="bg-warning bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 52px; height: 52px;">
+                            <i class="bi bi-briefcase-fill fs-4 text-warning"></i>
+                        </div>
+                        <h5 class="fw-bold">Business Loan</h5>
+                        <p class="text-muted small mb-3">Start, expand, or manage your business with funding designed for entrepreneurs.</p>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">Interest Rate</span>
+                            <span class="badge bg-warning bg-opacity-10 text-warning">From @(loanTypes.FirstOrDefault(l => l.Name.Contains("Business"))?.InterestRate.ToString("0.#") ?? "8.0")%</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Max Amount</span>
+                            <span class="fw-semibold">$200,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Education Loan -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100 loan-product-card">
+                    <div class="card-body p-4">
+                        <div class="bg-info bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 52px; height: 52px;">
+                            <i class="bi bi-mortarboard-fill fs-4 text-info"></i>
+                        </div>
+                        <h5 class="fw-bold">Education Loan</h5>
+                        <p class="text-muted small mb-3">Invest in your future. Cover tuition, books, accommodation and more.</p>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">Interest Rate</span>
+                            <span class="badge bg-info bg-opacity-10 text-info">From @(loanTypes.FirstOrDefault(l => l.Name.Contains("Education"))?.InterestRate.ToString("0.#") ?? "5.5")%</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Max Amount</span>
+                            <span class="fw-semibold">$100,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Mortgage Loan -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100 loan-product-card">
+                    <div class="card-body p-4">
+                        <div class="bg-success bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 52px; height: 52px;">
+                            <i class="bi bi-house-door-fill fs-4 text-success"></i>
+                        </div>
+                        <h5 class="fw-bold">Mortgage Loan</h5>
+                        <p class="text-muted small mb-3">Buy your dream home or refinance with our lowest available rates.</p>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">Interest Rate</span>
+                            <span class="badge bg-success bg-opacity-10 text-success">From @(loanTypes.FirstOrDefault(l => l.Name.Contains("Mortgage"))?.InterestRate.ToString("0.#") ?? "3.5")%</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Max Amount</span>
+                            <span class="fw-semibold">$500,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Auto Loan -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 shadow-sm h-100 loan-product-card">
+                    <div class="card-body p-4">
+                        <div class="bg-danger bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 52px; height: 52px;">
+                            <i class="bi bi-car-front-fill fs-4 text-danger"></i>
+                        </div>
+                        <h5 class="fw-bold">Auto Loan</h5>
+                        <p class="text-muted small mb-3">New or used, get behind the wheel with affordable financing options.</p>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-muted small">Interest Rate</span>
+                            <span class="badge bg-danger bg-opacity-10 text-danger">From @(loanTypes.FirstOrDefault(l => l.Name.Contains("Auto"))?.InterestRate.ToString("0.#") ?? "6.5")%</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Max Amount</span>
+                            <span class="fw-semibold">$75,000</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- CTA Card -->
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 bg-primary text-white h-100 shadow">
+                    <div class="card-body p-4 d-flex flex-column justify-content-center text-center">
+                        <i class="bi bi-patch-check-fill fs-1 mb-3"></i>
+                        <h5 class="fw-bold">Not Sure Which Loan?</h5>
+                        <p class="opacity-75 small mb-3">Take our free eligibility check to discover which products you qualify for.</p>
+                        <a asp-area="Client" asp-controller="Eligibility" asp-action="Check" class="btn btn-warning fw-semibold">
+                            Check Now <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
-    <a href="/LoanApplications/Create" class="btn btn-success btn-lg">
-        Start Loan Application
-    </a>
-</div>
+<!-- ========== WHY CHOOSE US ========== -->
+<section class="mb-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill mb-2">Why @siteName</span>
+            <h2 class="display-6 fw-bold">Built for Borrowers, Not Banks</h2>
+            <p class="text-muted mx-auto" style="max-width: 550px;">We put our clients first with technology that makes borrowing simple, fair, and transparent.</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 h-100 p-3">
+                    <div class="card-body">
+                        <div class="bg-primary bg-opacity-10 rounded-3 d-inline-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px;">
+                            <i class="bi bi-lightning-charge-fill fs-5 text-primary"></i>
+                        </div>
+                        <h5 class="fw-bold">Instant Pre-Qualification</h5>
+                        <p class="text-muted small mb-0">Know your eligibility in seconds — no credit score impact, no obligations.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 h-100 p-3">
+                    <div class="card-body">
+                        <div class="bg-success bg-opacity-10 rounded-3 d-inline-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px;">
+                            <i class="bi bi-percent fs-5 text-success"></i>
+                        </div>
+                        <h5 class="fw-bold">Competitive Rates</h5>
+                        <p class="text-muted small mb-0">Rates starting from 3.5% — lower than most traditional banks and lenders.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 h-100 p-3">
+                    <div class="card-body">
+                        <div class="bg-warning bg-opacity-10 rounded-3 d-inline-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px;">
+                            <i class="bi bi-eye-fill fs-5 text-warning"></i>
+                        </div>
+                        <h5 class="fw-bold">Full Transparency</h5>
+                        <p class="text-muted small mb-0">No hidden charges. See your exact monthly payment before you commit.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 h-100 p-3">
+                    <div class="card-body">
+                        <div class="bg-info bg-opacity-10 rounded-3 d-inline-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px;">
+                            <i class="bi bi-phone-fill fs-5 text-info"></i>
+                        </div>
+                        <h5 class="fw-bold">100% Digital</h5>
+                        <p class="text-muted small mb-0">Apply, track, and manage your loan entirely online — anytime, anywhere.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 h-100 p-3">
+                    <div class="card-body">
+                        <div class="bg-danger bg-opacity-10 rounded-3 d-inline-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px;">
+                            <i class="bi bi-calendar-check-fill fs-5 text-danger"></i>
+                        </div>
+                        <h5 class="fw-bold">Flexible Terms</h5>
+                        <p class="text-muted small mb-0">Choose repayment durations from 6 to 60 months that fit your budget.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="card border-0 h-100 p-3">
+                    <div class="card-body">
+                        <div class="bg-secondary bg-opacity-10 rounded-3 d-inline-flex align-items-center justify-content-center mb-3" style="width: 48px; height: 48px;">
+                            <i class="bi bi-headset fs-5 text-secondary"></i>
+                        </div>
+                        <h5 class="fw-bold">Dedicated Support</h5>
+                        <p class="text-muted small mb-0">Our support team is available to help at every step of your loan journey.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== TESTIMONIALS ========== -->
+<section class="bg-light py-5 rounded-4 mb-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill mb-2">Testimonials</span>
+            <h2 class="display-6 fw-bold">What Our Clients Say</h2>
+        </div>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 44px; height: 44px; font-weight: 700;">JM</div>
+                            <div>
+                                <h6 class="fw-bold mb-0">James Mitchell</h6>
+                                <small class="text-muted">Personal Loan</small>
+                            </div>
+                        </div>
+                        <div class="text-warning mb-2">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="text-muted small mb-0">"The entire process was seamless. I was approved within hours and the funds were in my account the next day. Highly recommend!"</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 44px; height: 44px; font-weight: 700;">SP</div>
+                            <div>
+                                <h6 class="fw-bold mb-0">Sarah Parker</h6>
+                                <small class="text-muted">Education Loan</small>
+                            </div>
+                        </div>
+                        <div class="text-warning mb-2">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                        </div>
+                        <p class="text-muted small mb-0">"Finally a lender that's transparent! The eligibility checker showed me exactly what I'd pay monthly. No surprises at all."</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-body p-4">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 44px; height: 44px; font-weight: 700;">RK</div>
+                            <div>
+                                <h6 class="fw-bold mb-0">Robert Kim</h6>
+                                <small class="text-muted">Business Loan</small>
+                            </div>
+                        </div>
+                        <div class="text-warning mb-2">
+                            <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-half"></i>
+                        </div>
+                        <p class="text-muted small mb-0">"@siteName helped me launch my restaurant. The business loan terms were fair and the support team guided me through everything."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== FAQ SECTION ========== -->
+<section class="mb-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill mb-2">FAQ</span>
+            <h2 class="display-6 fw-bold">Frequently Asked Questions</h2>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item border-0 mb-2 rounded-3 shadow-sm">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                How quickly can I get approved?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted small">
+                                Most applications are reviewed and approved within 24 hours. Once approved, funds are typically disbursed within 1-2 business days depending on your bank.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0 mb-2 rounded-3 shadow-sm">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Does the eligibility check affect my credit score?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted small">
+                                No. Our eligibility check is a soft inquiry that does not impact your credit score. You can check your eligibility with confidence.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0 mb-2 rounded-3 shadow-sm">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                What documents do I need to apply?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted small">
+                                You'll typically need a valid government-issued ID, proof of income (pay stubs or tax returns), and proof of address. Additional documents may be required depending on the loan type.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0 mb-2 rounded-3 shadow-sm">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                Can I repay my loan early?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted small">
+                                Absolutely. We encourage early repayment and do not charge any prepayment penalties. You can pay off your loan at any time.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-3 shadow-sm mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                What are the repayment options?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted small">
+                                We offer flexible repayment terms from 6 to 60 months. Payments can be made via bank transfer, USDT, or Bitcoin. Your monthly amount is fixed using the EMI formula so there are no surprises.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-3 shadow-sm mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                                Who actually funds my loan?
+                            </button>
+                        </h2>
+                        <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted small">
+                                @siteName works with a network of <strong>in-house investors</strong> who fund loans directly through our platform. Depending on the terms of your agreement, your repayments may be directed to the investor who backed your loan. This is fully transparent — your loan agreement will clearly outline the funding source and repayment details before you accept any offer. This investor-backed model allows us to offer faster approvals and more competitive rates than traditional banks.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-3 shadow-sm mb-2">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                                What if I have a low credit score? Can I still get a loan?
+                            </button>
+                        </h2>
+                        <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted small">
+                                Yes! Unlike traditional lenders, we don't rely on credit scores alone. @siteName partners with a broad <strong>affiliate network of lending partners and investors</strong> to match you with the best possible loan options regardless of your credit history. Our network evaluates your full financial profile — income, expenses, and repayment capacity — to find solutions that work for you. This means more people get approved, with terms tailored to their actual financial situation rather than a single number.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item border-0 rounded-3 shadow-sm">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-semibold" type="button" data-bs-toggle="collapse" data-bs-target="#faq8">
+                                How does the affiliate lending network benefit me?
+                            </button>
+                        </h2>
+                        <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body text-muted small">
+                                Our affiliate network gives you access to <strong>multiple funding sources</strong> competing to offer you the best deal. Instead of being limited to a single lender's criteria, your application is evaluated across our entire partner ecosystem — including private investors, institutional lenders, and specialty finance providers. This means <strong>higher approval rates</strong>, more flexible terms, and the ability to find a loan even when traditional banks say no. Think of us as your personal loan marketplace, working behind the scenes to get you funded.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== FINAL CTA ========== -->
+<section class="mb-5">
+    <div class="container">
+        <div class="bg-primary rounded-4 p-5 text-center text-white position-relative overflow-hidden">
+            <div class="position-relative" style="z-index: 2;">
+                <h2 class="display-6 fw-bold mb-3">Ready to Get Started?</h2>
+                <p class="lead opacity-75 mb-4 mx-auto" style="max-width: 500px;">
+                    Join thousands of satisfied clients. Check your eligibility in under 2 minutes — no commitment required.
+                </p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a asp-area="Client" asp-controller="Eligibility" asp-action="Check" class="btn btn-warning btn-lg px-5 fw-semibold shadow">
+                        <i class="bi bi-rocket-takeoff me-2"></i>Check Eligibility Now
+                    </a>
+                    <a href="/Identity/Account/Register" class="btn btn-outline-light btn-lg px-5">
+                        Create Account
+                    </a>
+                </div>
+            </div>
+            <!-- Decorative circles -->
+            <div class="position-absolute top-0 start-0 translate-middle bg-white opacity-10 rounded-circle" style="width: 200px; height: 200px;"></div>
+            <div class="position-absolute bottom-0 end-0 translate-middle-x bg-white opacity-10 rounded-circle" style="width: 300px; height: 300px;"></div>
+        </div>
+    </div>
+</section>

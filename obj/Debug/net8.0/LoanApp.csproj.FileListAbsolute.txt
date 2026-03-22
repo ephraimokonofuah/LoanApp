@@ -255,3 +255,4 @@
 /Users/ephraim/Projects/LoanApp/obj/Debug/net8.0/LoanApp.pdb
 /Users/ephraim/Projects/LoanApp/obj/Debug/net8.0/LoanApp.genruntimeconfig.cache
 /Users/ephraim/Projects/LoanApp/obj/Debug/net8.0/ref/LoanApp.dll
+/Users/ephraim/Projects/LoanApp/obj/Debug/net8.0/LoanApp.sourcelink.json

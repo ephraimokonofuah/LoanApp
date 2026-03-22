@@ -1,0 +1,196 @@
+@model LoanApp.Models.SiteSettings
+
+@{
+    ViewData["Title"] = "Site Settings";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-gear-fill text-primary me-2"></i>Site Settings</h2>
+        <p class="text-muted mb-0">Manage your website's contact information, branding, and social media links.</p>
+    </div>
+    @if (Model.UpdatedAt != default)
+    {
+        <span class="badge bg-light text-muted border">
+            <i class="bi bi-clock me-1"></i>Last updated: @Model.UpdatedAt.ToString("MMM dd, yyyy h:mm tt")
+        </span>
+    }
+</div>
+
+<form asp-action="Index" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="row g-4">
+        <!-- General Info -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-primary bg-opacity-10 border-0">
+                    <h6 class="fw-bold mb-0 text-primary"><i class="bi bi-building me-2"></i>General Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="SiteName" class="form-label fw-semibold">Site Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                            <input asp-for="SiteName" class="form-control" placeholder="e.g. LoanApp" />
+                        </div>
+                        <span asp-validation-for="SiteName" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="FooterDescription" class="form-label fw-semibold">Footer Description</label>
+                        <textarea asp-for="FooterDescription" class="form-control" rows="3" placeholder="Brief description shown in the footer..."></textarea>
+                        <span asp-validation-for="FooterDescription" class="text-danger small"></span>
+                        <small class="text-muted">Max 500 characters</small>
+                    </div>
+                    <div class="mb-0">
+                        <label asp-for="NmlsNumber" class="form-label fw-semibold">NMLS Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-shield-check"></i></span>
+                            <input asp-for="NmlsNumber" class="form-control" placeholder="e.g. 123456" />
+                        </div>
+                        <span asp-validation-for="NmlsNumber" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact Info -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-success bg-opacity-10 border-0">
+                    <h6 class="fw-bold mb-0 text-success"><i class="bi bi-telephone me-2"></i>Contact Information</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Email" class="form-label fw-semibold">Primary Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="Email" class="form-control" placeholder="support@example.com" />
+                            </div>
+                            <span asp-validation-for="Email" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="SecondaryEmail" class="form-label fw-semibold">Secondary Email</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                <input asp-for="SecondaryEmail" class="form-control" placeholder="info@example.com" />
+                            </div>
+                            <span asp-validation-for="SecondaryEmail" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="Phone" class="form-label fw-semibold">Primary Phone</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input asp-for="Phone" class="form-control" placeholder="(800) 555-1234" />
+                            </div>
+                            <span asp-validation-for="Phone" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label asp-for="SecondaryPhone" class="form-label fw-semibold">Secondary Phone</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                <input asp-for="SecondaryPhone" class="form-control" placeholder="(800) 555-5678" />
+                            </div>
+                            <span asp-validation-for="SecondaryPhone" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="mb-0">
+                        <label asp-for="BusinessHours" class="form-label fw-semibold">Business Hours</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-clock"></i></span>
+                            <input asp-for="BusinessHours" class="form-control" placeholder="Mon – Fri: 8AM – 6PM EST" />
+                        </div>
+                        <span asp-validation-for="BusinessHours" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Address -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-warning bg-opacity-10 border-0">
+                    <h6 class="fw-bold mb-0 text-warning"><i class="bi bi-geo-alt me-2"></i>Address</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="AddressLine1" class="form-label fw-semibold">Address Line 1</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                            <input asp-for="AddressLine1" class="form-control" placeholder="123 Finance Street, Suite 400" />
+                        </div>
+                        <span asp-validation-for="AddressLine1" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-0">
+                        <label asp-for="AddressLine2" class="form-label fw-semibold">Address Line 2</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-geo-alt"></i></span>
+                            <input asp-for="AddressLine2" class="form-control" placeholder="New York, NY 10001" />
+                        </div>
+                        <span asp-validation-for="AddressLine2" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Social Media -->
+        <div class="col-lg-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header bg-info bg-opacity-10 border-0">
+                    <h6 class="fw-bold mb-0 text-info"><i class="bi bi-share me-2"></i>Social Media Links</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label asp-for="FacebookUrl" class="form-label fw-semibold">Facebook</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-facebook"></i></span>
+                            <input asp-for="FacebookUrl" class="form-control" placeholder="https://facebook.com/yourpage" />
+                        </div>
+                        <span asp-validation-for="FacebookUrl" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="TwitterUrl" class="form-label fw-semibold">Twitter / X</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-twitter-x"></i></span>
+                            <input asp-for="TwitterUrl" class="form-control" placeholder="https://x.com/yourhandle" />
+                        </div>
+                        <span asp-validation-for="TwitterUrl" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="LinkedInUrl" class="form-label fw-semibold">LinkedIn</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-linkedin"></i></span>
+                            <input asp-for="LinkedInUrl" class="form-control" placeholder="https://linkedin.com/company/yourcompany" />
+                        </div>
+                        <span asp-validation-for="LinkedInUrl" class="text-danger small"></span>
+                    </div>
+                    <div class="mb-0">
+                        <label asp-for="InstagramUrl" class="form-label fw-semibold">Instagram</label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="bi bi-instagram"></i></span>
+                            <input asp-for="InstagramUrl" class="form-control" placeholder="https://instagram.com/yourprofile" />
+                        </div>
+                        <span asp-validation-for="InstagramUrl" class="text-danger small"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="mt-4 d-flex gap-2">
+        <button type="submit" class="btn btn-primary btn-lg px-4">
+            <i class="bi bi-check-lg me-2"></i>Save Settings
+        </button>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-lg px-4">
+            <i class="bi bi-arrow-counterclockwise me-2"></i>Reset
+        </a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using LoanApp.Models;
+using LoanApp.Repository.IRepository;
 
 namespace LoanApp.Areas.Client.Controllers;
 
@@ -8,10 +9,12 @@ namespace LoanApp.Areas.Client.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public HomeController(ILogger<HomeController> logger)
+    public HomeController(ILogger<HomeController> logger, IUnitOfWork unitOfWork)
     {
         _logger = logger;
+        _unitOfWork = unitOfWork;
     }
 
     public IActionResult Index()
@@ -20,6 +23,8 @@ public class HomeController : Controller
         {
             return Redirect("/PostLogin");
         }
+        ViewBag.LoanTypes = _unitOfWork.LoanType.GetAll(lt => lt.IsActive).ToList();
+        ViewBag.SiteSettings = _unitOfWork.SiteSettings.Get(s => s.Id == 1);
         return View();
     }
 

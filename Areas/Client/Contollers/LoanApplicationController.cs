@@ -24,13 +24,14 @@ namespace LoanApp.Areas.Client.Controllers
         public async Task<IActionResult> Index()
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
             var loanApplications = _unitOfWork.LoanApplication.GetAll(l => l.UserId == user.Id).ToList();
 
             ViewBag.TotalApplications = loanApplications.Count;
             ViewBag.Pending = loanApplications.Count(a => a.Status == "Pending");
             ViewBag.Approved = loanApplications.Count(a => a.Status == "Approved");
             ViewBag.Rejected = loanApplications.Count(a => a.Status == "Rejected");
-            var firstName = user?.FullName?.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? user?.Email;
+            var firstName = user.FullName?.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? user.Email;
             ViewBag.UserName = firstName;
 
             // Check if user has an approved eligibility
@@ -51,6 +52,7 @@ namespace LoanApp.Areas.Client.Controllers
         public async Task<IActionResult> Create(int? eligibilityId)
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
 
             if (eligibilityId.HasValue)
             {
@@ -83,6 +85,7 @@ namespace LoanApp.Areas.Client.Controllers
         public async Task<IActionResult> Create(LoanApplication model)
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
             model.UserId = user.Id;
             model.Status = "Pending";
             model.CreatedAt = System.DateTime.UtcNow;
@@ -113,6 +116,7 @@ namespace LoanApp.Areas.Client.Controllers
         public async Task<IActionResult> Details(int id)
         {
             var user = await _userManager.GetUserAsync(User);
+            if (user == null) return Challenge();
             var loanApplication = _unitOfWork.LoanApplication.Get(l => l.Id == id, tracked: true);
             if (loanApplication == null || loanApplication.UserId != user.Id) return NotFound();
 

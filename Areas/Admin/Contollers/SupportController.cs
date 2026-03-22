@@ -68,6 +68,7 @@ namespace LoanApp.Areas.Admin.Controllers
             }
 
             var adminId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (adminId == null) return Challenge();
             var ticket = _unitOfWork.SupportTicket.Get(t => t.Id == ticketId, tracked: true);
 
             if (ticket == null)

@@ -8,6 +8,61 @@ html {
   }
 }
 
+/* ================================
+   Home Page Styles
+   ================================ */
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b2838 40%, #0a4d68 100%);
+  position: relative;
+}
+
+.hero-gradient {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(13, 110, 253, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(255, 193, 7, 0.1) 0%, transparent 40%);
+  z-index: 1;
+}
+
+.min-vh-75 {
+  min-height: 75vh;
+}
+
+.hero-card {
+  transform: rotate(-2deg);
+  transition: transform 0.3s ease;
+  border-radius: 1rem !important;
+}
+
+.hero-card:hover {
+  transform: rotate(0deg) scale(1.02);
+}
+
+/* Loan Product Cards */
+.loan-product-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: 0.75rem !important;
+}
+
+.loan-product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.12) !important;
+}
+
+/* Accordion Styles */
+#faqAccordion .accordion-button:not(.collapsed) {
+  background-color: rgba(13, 110, 253, 0.05);
+  color: #0d6efd;
+}
+
+#faqAccordion .accordion-button:focus {
+  box-shadow: none;
+  border-color: transparent;
+}
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
@@ -133,8 +188,22 @@ body {
 
 /* Footer */
 .main-footer {
-  padding: 1rem 0;
   font-size: 0.875rem;
+}
+
+.main-footer .footer-link:hover {
+  color: #fff !important;
+  transition: color 0.2s ease;
+}
+
+.main-footer .footer-main h5,
+.main-footer .footer-main h6 {
+  letter-spacing: 0.5px;
+}
+
+.main-footer .badge {
+  font-weight: 500;
+  letter-spacing: 0.3px;
 }
 
 .main-footer.has-sidebar {

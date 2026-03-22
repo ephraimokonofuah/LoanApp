@@ -13,6 +13,22 @@
       "PackagePath": "staticwebassets/favicon.ico"
     },
     {
+      "Id": "/Users/ephraim/Projects/LoanApp/wwwroot/favicon.png",
+      "PackagePath": "staticwebassets/favicon.png"
+    },
+    {
+      "Id": "/Users/ephraim/Projects/LoanApp/wwwroot/images/favicon.svg",
+      "PackagePath": "staticwebassets/images/favicon.svg"
+    },
+    {
+      "Id": "/Users/ephraim/Projects/LoanApp/wwwroot/images/logo-icon.svg",
+      "PackagePath": "staticwebassets/images/logo-icon.svg"
+    },
+    {
+      "Id": "/Users/ephraim/Projects/LoanApp/wwwroot/images/logo.svg",
+      "PackagePath": "staticwebassets/images/logo.svg"
+    },
+    {
       "Id": "/Users/ephraim/Projects/LoanApp/wwwroot/js/loanapplication.js",
       "PackagePath": "staticwebassets/js/loanapplication.js"
     },

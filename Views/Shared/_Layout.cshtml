@@ -5,6 +5,8 @@
 @inject LoanApp.Repository.IRepository.IUnitOfWork UnitOfWork
 
 @{
+    var siteSettings = UnitOfWork.SiteSettings.Get(s => s.Id == 1);
+    var siteName = siteSettings?.SiteName ?? "LoanApp";
     var isSignedIn = SignInManager.IsSignedIn(User);
     var isUser = isSignedIn && User.IsInRole("User");
     var isAdmin = isSignedIn && User.IsInRole("Admin");
@@ -21,6 +23,7 @@
     int userUnreadEligibility = 0;
     int userUnreadDisbursements = 0;
     int userUnreadTickets = 0;
+    int userUnreadRepayments = 0;
     if (isUser)
     {
         var currentUser = await UserManager.GetUserAsync(User);
@@ -38,6 +41,8 @@
                 .GetAll(d => d.UserId == currentUser.Id && !d.IsReadByUser).Count();
             userUnreadTickets = UnitOfWork.SupportTicket
                 .GetAll(t => t.UserId == currentUser.Id && !t.IsReadByUser).Count();
+            userUnreadRepayments = UnitOfWork.Repayment
+                .GetAll(r => r.UserId == currentUser.Id && !r.IsReadByUser).Count();
         }
     }
 
@@ -45,6 +50,7 @@
     int adminUnreadEligibility = 0;
     int adminUnreadDisbursements = 0;
     int adminUnreadTickets = 0;
+    int adminUnreadRepayments = 0;
     if (isAdmin)
     {
         adminUnreadApplications = UnitOfWork.LoanApplication
@@ -55,6 +61,8 @@
             .GetAll(d => !d.IsReadByAdmin).Count();
         adminUnreadTickets = UnitOfWork.SupportTicket
             .GetAll(t => !t.IsReadByAdmin).Count();
+        adminUnreadRepayments = UnitOfWork.Repayment
+            .GetAll(r => !r.IsReadByAdmin).Count();
     }
 }
 
@@ -63,7 +71,11 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - LoanApp</title>
+    <title>@ViewData["Title"] - @siteName</title>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="~/favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="~/images/favicon.svg" />
+    <link rel="apple-touch-icon" href="~/favicon.png" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/LoanApp.styles.css" asp-append-version="true" />
@@ -74,8 +86,9 @@
     <!-- Top Navbar -->
     <nav class="navbar navbar-expand-sm navbar-dark bg-primary border-bottom shadow-sm fixed-top" style="z-index:1040;">
         <div class="container-fluid">
-            <a class="navbar-brand fw-bold" asp-area="Client" asp-controller="Home" asp-action="Index">
-                <i class="bi bi-bank me-2"></i>LoanApp
+            <a class="navbar-brand fw-bold d-flex align-items-center" asp-area="Client" asp-controller="Home" asp-action="Index">
+                <img src="~/images/logo-icon.svg" alt="@siteName" width="32" height="32" class="me-2" />
+                <span>@siteName</span>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#topNav"
                     aria-controls="topNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -187,6 +200,16 @@
                                 }
                             </a>
 
+                            <div class="sidebar-section-title">Repayments</div>
+                            <a class="sidebar-link @(currentArea == "Admin" && currentController == "Repayment" ? "active" : "")"
+                               asp-area="Admin" asp-controller="Repayment" asp-action="Index">
+                                <i class="bi bi-calendar2-check"></i><span>Repayments</span>
+                                @if (adminUnreadRepayments > 0)
+                                {
+                                    <span class="badge bg-danger rounded-pill ms-auto">@adminUnreadRepayments</span>
+                                }
+                            </a>
+
                             <div class="sidebar-section-title">Support</div>
                             <a class="sidebar-link @(currentArea == "Admin" && currentController == "Support" ? "active" : "")"
                                asp-area="Admin" asp-controller="Support" asp-action="Index">
@@ -201,6 +224,10 @@
                             <a class="sidebar-link @(currentArea == "Admin" && currentController == "User" ? "active" : "")"
                                asp-area="Admin" asp-controller="User" asp-action="Index">
                                 <i class="bi bi-people"></i><span>User Management</span>
+                            </a>
+                            <a class="sidebar-link @(currentArea == "Admin" && currentController == "Settings" ? "active" : "")"
+                               asp-area="Admin" asp-controller="Settings" asp-action="Index">
+                                <i class="bi bi-gear"></i><span>Site Settings</span>
                             </a>
                             <a class="sidebar-link" asp-area="Identity" asp-page="/Account/Manage/Index">
                                 <i class="bi bi-person-gear"></i><span>Profile Settings</span>
@@ -235,6 +262,14 @@
                                 @if (userUnreadDisbursements > 0)
                                 {
                                     <span class="badge bg-danger rounded-pill ms-auto">@userUnreadDisbursements</span>
+                                }
+                            </a>
+                            <a class="sidebar-link @(currentArea == "Client" && currentController == "Repayment" ? "active" : "")"
+                               asp-area="Client" asp-controller="Repayment" asp-action="Index">
+                                <i class="bi bi-calendar2-check"></i><span>My Repayments</span>
+                                @if (userUnreadRepayments > 0)
+                                {
+                                    <span class="badge bg-danger rounded-pill ms-auto">@userUnreadRepayments</span>
                                 }
                             </a>
                             @if (sidebarEligibilityId.HasValue)
@@ -300,9 +335,117 @@
         </main>
     </div>
 
-    <footer class="main-footer @(hasSidebar ? "has-sidebar" : "") border-top bg-light text-muted">
-        <div class="container-fluid px-md-4">
-            &copy; 2026 - LoanApp - <a asp-area="Client" asp-controller="Home" asp-action="Privacy">Privacy</a>
+    <footer class="main-footer @(hasSidebar ? "has-sidebar" : "")">
+        <div class="footer-main bg-dark text-light pt-5 pb-4">
+            <div class="container-fluid px-md-5">
+                <div class="row g-4">
+                    <!-- Company Info -->
+                    <div class="col-lg-4 col-md-6">
+                        <h5 class="fw-bold mb-3 text-white d-flex align-items-center">
+                            <img src="~/images/logo-icon.svg" alt="@siteName" width="28" height="28" class="me-2" />
+                            @siteName
+                        </h5>
+                        <p class="text-secondary small mb-3">
+                            @(siteSettings?.FooterDescription ?? "Trusted lending solutions with competitive rates and transparent terms.")
+                        </p>
+                        <div class="d-flex gap-3 mt-3">
+                            @if (!string.IsNullOrEmpty(siteSettings?.FacebookUrl))
+                            {
+                                <a href="@siteSettings.FacebookUrl" target="_blank" rel="noopener" class="text-secondary fs-5 footer-link" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                            }
+                            @if (!string.IsNullOrEmpty(siteSettings?.TwitterUrl))
+                            {
+                                <a href="@siteSettings.TwitterUrl" target="_blank" rel="noopener" class="text-secondary fs-5 footer-link" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+                            }
+                            @if (!string.IsNullOrEmpty(siteSettings?.LinkedInUrl))
+                            {
+                                <a href="@siteSettings.LinkedInUrl" target="_blank" rel="noopener" class="text-secondary fs-5 footer-link" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                            }
+                            @if (!string.IsNullOrEmpty(siteSettings?.InstagramUrl))
+                            {
+                                <a href="@siteSettings.InstagramUrl" target="_blank" rel="noopener" class="text-secondary fs-5 footer-link" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Quick Links -->
+                    <div class="col-lg-2 col-md-6">
+                        <h6 class="fw-bold text-uppercase mb-3 small text-white">Quick Links</h6>
+                        <ul class="list-unstyled small">
+                            <li class="mb-2"><a asp-area="Client" asp-controller="Home" asp-action="Index" class="text-secondary text-decoration-none footer-link"><i class="bi bi-chevron-right me-1 small"></i>Home</a></li>
+                            <li class="mb-2"><a asp-area="Client" asp-controller="Eligibility" asp-action="Check" class="text-secondary text-decoration-none footer-link"><i class="bi bi-chevron-right me-1 small"></i>Check Eligibility</a></li>
+                            <li class="mb-2"><a asp-area="Client" asp-controller="LoanApplication" asp-action="Index" class="text-secondary text-decoration-none footer-link"><i class="bi bi-chevron-right me-1 small"></i>My Applications</a></li>
+                            <li class="mb-2"><a asp-area="Client" asp-controller="Support" asp-action="Index" class="text-secondary text-decoration-none footer-link"><i class="bi bi-chevron-right me-1 small"></i>Support</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Loan Products -->
+                    <div class="col-lg-3 col-md-6">
+                        <h6 class="fw-bold text-uppercase mb-3 small text-white">Loan Products</h6>
+                        <ul class="list-unstyled small">
+                            <li class="mb-2"><span class="text-secondary"><i class="bi bi-chevron-right me-1 small"></i>Personal Loans</span></li>
+                            <li class="mb-2"><span class="text-secondary"><i class="bi bi-chevron-right me-1 small"></i>Business Loans</span></li>
+                            <li class="mb-2"><span class="text-secondary"><i class="bi bi-chevron-right me-1 small"></i>Home Loans</span></li>
+                            <li class="mb-2"><span class="text-secondary"><i class="bi bi-chevron-right me-1 small"></i>Education Loans</span></li>
+                            <li class="mb-2"><span class="text-secondary"><i class="bi bi-chevron-right me-1 small"></i>Auto Loans</span></li>
+                        </ul>
+                    </div>
+
+                    <!-- Contact Info -->
+                    <div class="col-lg-3 col-md-6">
+                        <h6 class="fw-bold text-uppercase mb-3 small text-white">Contact Us</h6>
+                        <ul class="list-unstyled small">
+                            <li class="mb-2 text-secondary">
+                                <i class="bi bi-geo-alt-fill me-2"></i>@(siteSettings?.AddressLine1 ?? "123 Finance Street, Suite 400")<br>
+                                <span class="ms-4">@(siteSettings?.AddressLine2 ?? "New York, NY 10001")</span>
+                            </li>
+                            <li class="mb-2 text-secondary">
+                                <i class="bi bi-telephone-fill me-2"></i>@(siteSettings?.Phone ?? "(800) 555-LOAN")
+                            </li>
+                            <li class="mb-2 text-secondary">
+                                <i class="bi bi-envelope-fill me-2"></i>@(siteSettings?.Email ?? "support@@loanapp.com")
+                            </li>
+                            <li class="mb-2 text-secondary">
+                                <i class="bi bi-clock-fill me-2"></i>@(siteSettings?.BusinessHours ?? "Mon – Fri: 8AM – 6PM EST")
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Regulatory & Trust Badges -->
+                <div class="border-top border-secondary mt-4 pt-3">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <p class="text-secondary small mb-0">
+                                <i class="bi bi-shield-lock-fill me-1"></i>
+                                Your data is protected with 256-bit SSL encryption. All lending decisions are made in compliance
+                                with federal and state lending regulations. NMLS #@(siteSettings?.NmlsNumber ?? "123456"). Equal Housing Lender.
+                            </p>
+                        </div>
+                        <div class="col-md-4 text-md-end mt-2 mt-md-0">
+                            <span class="badge bg-secondary me-1"><i class="bi bi-shield-check me-1"></i>SSL Secured</span>
+                            <span class="badge bg-secondary me-1"><i class="bi bi-bank me-1"></i>FDIC</span>
+                            <span class="badge bg-secondary"><i class="bi bi-house-check me-1"></i>Equal Housing</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="bg-black text-center py-3">
+            <div class="container-fluid px-md-5">
+                <div class="row align-items-center">
+                    <div class="col-md-6 text-md-start">
+                        <span class="text-secondary small">&copy; @DateTime.Now.Year @siteName. All rights reserved.</span>
+                    </div>
+                    <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                        <a asp-area="Client" asp-controller="Home" asp-action="Privacy" class="text-secondary text-decoration-none small me-3 footer-link">Privacy Policy</a>
+                        <a href="#" class="text-secondary text-decoration-none small me-3 footer-link">Terms of Service</a>
+                        <a href="#" class="text-secondary text-decoration-none small footer-link">Disclosures</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
 
@@ -312,5 +455,4 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-</html>
 </html>

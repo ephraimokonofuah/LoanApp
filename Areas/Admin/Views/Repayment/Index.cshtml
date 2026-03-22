@@ -1,0 +1,220 @@
+@model List<LoanApp.Models.Repayment>
+
+@{
+    ViewData["Title"] = "Repayment Management";
+
+    var totalRepayments = Model.Count;
+    var paidCount = Model.Count(r => r.Status == RepaymentStatus.Paid);
+    var dueCount = Model.Count(r => r.Status == RepaymentStatus.Due);
+    var missedCount = Model.Count(r => r.Status == RepaymentStatus.Missed);
+    var requestedCount = Model.Count(r => r.Status == RepaymentStatus.PaymentRequested);
+    var detailsSentCount = Model.Count(r => r.Status == RepaymentStatus.DetailsSent);
+    var upcomingCount = Model.Count(r => r.Status == RepaymentStatus.Upcoming);
+
+    var totalAmount = Model.Sum(r => r.Amount);
+    var collectedAmount = Model.Where(r => r.Status == RepaymentStatus.Paid).Sum(r => r.Amount);
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-calendar2-check text-primary me-2"></i>Repayment Management</h3>
+            <p class="text-muted mb-0">Monitor and manage all loan repayments across users.</p>
+        </div>
+    </div>
+
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-1"></i> @TempData["success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    <!-- Stats Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-collection text-primary" style="font-size: 1.3rem;"></i>
+                    <h5 class="fw-bold mb-0 mt-1">@totalRepayments</h5>
+                    <small class="text-muted">Total</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-send-fill text-danger" style="font-size: 1.3rem;"></i>
+                    <h5 class="fw-bold mb-0 mt-1">@requestedCount</h5>
+                    <small class="text-muted">Requested</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 border-start border-4 border-info">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-envelope-check text-info" style="font-size: 1.3rem;"></i>
+                    <h5 class="fw-bold mb-0 mt-1">@detailsSentCount</h5>
+                    <small class="text-muted">Details Sent</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 border-start border-4 border-warning">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-clock text-warning" style="font-size: 1.3rem;"></i>
+                    <h5 class="fw-bold mb-0 mt-1">@dueCount</h5>
+                    <small class="text-muted">Due</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-check-circle text-success" style="font-size: 1.3rem;"></i>
+                    <h5 class="fw-bold mb-0 mt-1">@paidCount</h5>
+                    <small class="text-muted">Paid</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-2">
+            <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
+                <div class="card-body text-center py-3">
+                    <i class="bi bi-exclamation-triangle text-danger" style="font-size: 1.3rem;"></i>
+                    <h5 class="fw-bold mb-0 mt-1">@missedCount</h5>
+                    <small class="text-muted">Missed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collection Progress -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-3">
+                    <h6 class="text-muted mb-1">Collection Progress</h6>
+                    @{
+                        var collectionPercent = totalAmount > 0 ? Math.Round((collectedAmount / totalAmount) * 100, 1) : 0;
+                    }
+                    <div class="progress" style="height: 10px;">
+                        <div class="progress-bar bg-success" style="width: @collectionPercent%"></div>
+                    </div>
+                    <small class="text-muted">@collectionPercent% collected</small>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="fw-bold text-success fs-5">$@collectedAmount.ToString("N2")</div>
+                    <small class="text-muted">Collected</small>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="fw-bold text-primary fs-5">$@((totalAmount - collectedAmount).ToString("N2"))</div>
+                    <small class="text-muted">Outstanding</small>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="fw-bold text-dark fs-5">$@totalAmount.ToString("N2")</div>
+                    <small class="text-muted">Total Expected</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Repayment Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white py-3">
+            <h5 class="mb-0 fw-bold"><i class="bi bi-table me-2"></i>All Repayments</h5>
+        </div>
+        <div class="card-body">
+            <table class="table table-hover align-middle" id="repaymentTable" style="width:100%">
+                <thead class="table-light">
+                    <tr>
+                        <th>#</th>
+                        <th>Applicant</th>
+                        <th>Amount</th>
+                        <th>Due Date</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold">
+                                @r.InstallmentNumber
+                                @if (!r.IsReadByAdmin)
+                                {
+                                    <span class="badge bg-danger rounded-pill ms-1">New</span>
+                                }
+                            </td>
+                            <td>@(r.User?.FullName ?? "N/A")</td>
+                            <td class="fw-bold">$@r.Amount.ToString("N2")</td>
+                            <td>@r.DueDate.ToString("dd MMM yyyy")</td>
+                            <td>
+                                @switch (r.PaymentMethodRequested)
+                                {
+                                    case PaymentMethodType.USDT:
+                                        <span class="badge bg-success"><i class="bi bi-currency-exchange me-1"></i>USDT</span>
+                                        break;
+                                    case PaymentMethodType.Bitcoin:
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-currency-bitcoin me-1"></i>Bitcoin</span>
+                                        break;
+                                    case PaymentMethodType.BankTransfer:
+                                        <span class="badge bg-primary"><i class="bi bi-bank me-1"></i>Bank</span>
+                                        break;
+                                    default:
+                                        <span class="text-muted">—</span>
+                                        break;
+                                }
+                            </td>
+                            <td>
+                                @switch (r.Status)
+                                {
+                                    case RepaymentStatus.Paid:
+                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Paid</span>
+                                        break;
+                                    case RepaymentStatus.Due:
+                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Due</span>
+                                        break;
+                                    case RepaymentStatus.Missed:
+                                        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Missed</span>
+                                        break;
+                                    case RepaymentStatus.PaymentRequested:
+                                        <span class="badge bg-info"><i class="bi bi-send me-1"></i>Requested</span>
+                                        break;
+                                    case RepaymentStatus.DetailsSent:
+                                        <span class="badge bg-primary"><i class="bi bi-envelope-check me-1"></i>Details Sent</span>
+                                        break;
+                                    default:
+                                        <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Upcoming</span>
+                                        break;
+                                }
+                            </td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye me-1"></i>Manage
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#repaymentTable').DataTable({
+                order: [[3, 'asc']],
+                pageLength: 25,
+                language: {
+                    search: '<i class="bi bi-search me-1"></i>',
+                    searchPlaceholder: "Search repayments..."
+                }
+            });
+        });
+    </script>
+}

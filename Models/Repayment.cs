@@ -12,16 +12,46 @@ namespace LoanApp.Models
         public int LoanId { get; set; }
 
         [Required]
+        public string UserId { get; set; } = string.Empty;
+
+        public int InstallmentNumber { get; set; }
+
+        [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
 
-        public DateTime PaymentDate { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal PrincipalPortion { get; set; }
 
-        public string PaymentMethod { get; set; }
+        [Column(TypeName = "decimal(18,2)")]
+        public decimal InterestPortion { get; set; }
 
-        public string Reference { get; set; }
+        public DateTime DueDate { get; set; }
 
-        // Relationship
+        public RepaymentStatus Status { get; set; } = RepaymentStatus.Upcoming;
+
+        public PaymentMethodType PaymentMethodRequested { get; set; } = PaymentMethodType.None;
+
+        public DateTime? PaymentRequestedAt { get; set; }
+
+        [StringLength(1000)]
+        public string? PaymentDetails { get; set; }
+
+        public DateTime? PaymentDetailsSentAt { get; set; }
+
+        public DateTime? PaidAt { get; set; }
+
+        [StringLength(100)]
+        public string? TransactionReference { get; set; }
+
+        // Notification flags
+        public bool IsReadByAdmin { get; set; } = false;
+        public bool IsReadByUser { get; set; } = true;
+
+        // Relationships
         [ForeignKey("LoanId")]
-        public Loan Loan { get; set; }
+        public Loan Loan { get; set; } = null!;
+
+        [ForeignKey("UserId")]
+        public ApplicationUser User { get; set; } = null!;
     }
 }

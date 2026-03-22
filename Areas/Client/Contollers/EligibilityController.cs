@@ -85,7 +85,8 @@ namespace LoanApp.Areas.Client.Controllers
                 MonthlyRepayment = monthly,
                 TotalRepayment = total,
                 TotalInterest = interest,
-                Status = "Pending",
+                Status = "Approved",
+                ReviewedAt = DateTime.UtcNow,
                 CreatedAt = DateTime.UtcNow
             };
 

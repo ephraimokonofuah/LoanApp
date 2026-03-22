@@ -1,6 +1,7 @@
 using LoanApp.Models;
 using LoanApp.Models.ViewModels;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -81,11 +82,86 @@ namespace LoanApp.Areas.Admin.Controllers
             {
                 disbursement.PaidAmount = vm.PaidAmount ?? disbursement.ApprovedAmount;
                 disbursement.PaidAt = DateTime.UtcNow;
+
+                // Auto-generate repayment schedule
+                GenerateRepaymentSchedule(disbursement);
             }
 
             _unitOfWork.Save();
             TempData["success"] = $"Disbursement status updated to {vm.NewStatus}.";
             return RedirectToAction("Details", new { id = vm.DisbursementId });
+        }
+
+        private void GenerateRepaymentSchedule(LoanDisbursement disbursement)
+        {
+            var application = _unitOfWork.LoanApplication.Get(
+                a => a.Id == disbursement.LoanApplicationId);
+            if (application == null) return;
+
+            // Check if loan already exists for this application
+            var existingLoan = _unitOfWork.Loan.Get(l => l.LoanApplicationId == application.Id);
+            if (existingLoan != null) return;
+
+            var paidAmount = disbursement.PaidAmount;
+            var interestRate = application.InterestRate;
+            var durationMonths = application.DurationMonths;
+            var startDate = DateTime.UtcNow;
+
+            // Create Loan record
+            var loan = new Loan
+            {
+                UserId = disbursement.UserId,
+                LoanApplicationId = application.Id,
+                PrincipalAmount = paidAmount,
+                InterestRate = interestRate,
+                DurationMonths = durationMonths,
+                StartDate = startDate,
+                Status = "Active"
+            };
+            _unitOfWork.Loan.Add(loan);
+            _unitOfWork.Save();
+
+            // Calculate repayment schedule using EMI (same formula shown to user)
+            var (monthlyPayment, totalRepayment, totalInterest) = LoanCalculator.Calculate(paidAmount, interestRate, durationMonths);
+            var monthlyPrincipal = Math.Round(paidAmount / durationMonths, 2);
+            var monthlyInterest = Math.Round(monthlyPayment - monthlyPrincipal, 2);
+
+            for (int i = 1; i <= durationMonths; i++)
+            {
+                var isLast = i == durationMonths;
+                var principal = isLast
+                    ? paidAmount - (monthlyPrincipal * (durationMonths - 1))
+                    : monthlyPrincipal;
+                var interest = isLast
+                    ? totalInterest - (monthlyInterest * (durationMonths - 1))
+                    : monthlyInterest;
+                var amount = principal + interest;
+
+                var dueDate = startDate.AddDays(28 * i);
+                var status = RepaymentStatus.Upcoming;
+                if (dueDate.Date <= DateTime.UtcNow.Date)
+                    status = RepaymentStatus.Due;
+
+                var repayment = new Repayment
+                {
+                    LoanId = loan.Id,
+                    UserId = disbursement.UserId,
+                    InstallmentNumber = i,
+                    Amount = amount,
+                    PrincipalPortion = principal,
+                    InterestPortion = interest,
+                    DueDate = dueDate,
+                    Status = status,
+                    IsReadByAdmin = true,
+                    IsReadByUser = false
+                };
+                _unitOfWork.Repayment.Add(repayment);
+            }
+
+            // Update application status
+            application.Status = "Disbursed";
+            _unitOfWork.LoanApplication.Update(application);
+            _unitOfWork.Save();
         }
 
         private static bool IsValidTransition(DisbursementStatus current, DisbursementStatus next)

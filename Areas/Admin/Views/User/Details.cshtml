@@ -271,7 +271,7 @@
                                         };
                                         <tr>
                                             <td><span class="fw-semibold">#@app.Id</span></td>
-                                            <td>£@app.LoanAmount.ToString("N2")</td>
+                                            <td>$@app.LoanAmount.ToString("N2")</td>
                                             <td>@app.LoanPurpose</td>
                                             <td>@app.DurationMonths months</td>
                                             <td><span class="badge bg-@statusClass">@app.Status</span></td>
@@ -328,7 +328,7 @@
                                         };
                                         <tr>
                                             <td><span class="fw-semibold">#@check.Id</span></td>
-                                            <td>£@check.DesiredLoanAmount.ToString("N2")</td>
+                                            <td>$@check.DesiredLoanAmount.ToString("N2")</td>
                                             <td>
                                                 @if (check.IsEligible)
                                                 {
@@ -394,7 +394,7 @@
                                         };
                                         <tr>
                                             <td><span class="fw-semibold">#@d.Id</span></td>
-                                            <td>£@d.ApprovedAmount.ToString("N2")</td>
+                                            <td>$@d.ApprovedAmount.ToString("N2")</td>
                                             <td>@(d.Bank?.Name ?? "Not selected")</td>
                                             <td><span class="badge bg-@dStatusClass">@d.Status</span></td>
                                             <td><code>@(d.PaymentReference ?? "—")</code></td>

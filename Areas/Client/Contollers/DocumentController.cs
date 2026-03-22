@@ -134,7 +134,7 @@ namespace LoanApp.Areas.Client.Controllers
         {
             try
             {
-                if (request?.DocumentId <= 0)
+                if (request == null || request.DocumentId <= 0)
                 {
                     return BadRequest(new { success = false, message = "Invalid document ID" });
                 }
@@ -227,7 +227,7 @@ namespace LoanApp.Areas.Client.Controllers
             }
 
             var bytes = System.IO.File.ReadAllBytes(filePath);
-            return File(bytes, document.MimeType, document.FileName);
+            return File(bytes, document.MimeType ?? "application/octet-stream", document.FileName);
         }
 
         [HttpGet]

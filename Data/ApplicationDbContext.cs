@@ -23,6 +23,7 @@ namespace LoanApp.Data
         public DbSet<LoanDisbursement> LoanDisbursements { get; set; }
         public DbSet<SupportTicket> SupportTickets { get; set; }
         public DbSet<TicketMessage> TicketMessages { get; set; }
+        public DbSet<SiteSettings> SiteSettings { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -151,6 +152,26 @@ namespace LoanApp.Data
                 .Property(r => r.Amount)
                 .HasPrecision(18, 2);
 
+            modelBuilder.Entity<Repayment>()
+                .Property(r => r.PrincipalPortion)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Repayment>()
+                .Property(r => r.InterestPortion)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<Repayment>()
+                .HasOne(r => r.Loan)
+                .WithMany(l => l.Repayments)
+                .HasForeignKey(r => r.LoanId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Repayment>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             // EligibilityCheck
             modelBuilder.Entity<EligibilityCheck>()
                 .HasOne(e => e.User)
@@ -175,6 +196,23 @@ namespace LoanApp.Data
                 new Bank { Id = 3, Name = "Lloyds Banking Group", Code = "LLOY", IsActive = true },
                 new Bank { Id = 4, Name = "NatWest", Code = "NATW", IsActive = true },
                 new Bank { Id = 5, Name = "Santander UK", Code = "SANT", IsActive = true }
+            );
+
+            // Seed SiteSettings
+            modelBuilder.Entity<SiteSettings>().HasData(
+                new SiteSettings
+                {
+                    Id = 1,
+                    SiteName = "LoanApp",
+                    Email = "support@loanapp.com",
+                    Phone = "(800) 555-LOAN",
+                    AddressLine1 = "123 Finance Street, Suite 400",
+                    AddressLine2 = "New York, NY 10001",
+                    BusinessHours = "Mon \u2013 Fri: 8AM \u2013 6PM EST",
+                    FooterDescription = "Trusted lending solutions with competitive rates and transparent terms. We're committed to helping you achieve your financial goals with fast approvals and flexible repayment options.",
+                    NmlsNumber = "123456",
+                    UpdatedAt = new DateTime(2026, 1, 1)
+                }
             );
 
             // LoanDisbursement relationships

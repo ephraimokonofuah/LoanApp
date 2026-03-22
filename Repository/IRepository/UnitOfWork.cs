@@ -13,6 +13,9 @@ namespace LoanApp.Repository.IRepository
         public ILoanDisbursementRepository LoanDisbursement { get; private set; }
         public ISupportTicketRepository SupportTicket { get; private set; }
         public ITicketMessageRepository TicketMessage { get; private set; }
+        public ILoanRepository Loan { get; private set; }
+        public IRepaymentRepository Repayment { get; private set; }
+        public ISiteSettingsRepository SiteSettings { get; private set; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
@@ -25,6 +28,9 @@ namespace LoanApp.Repository.IRepository
             LoanDisbursement = new LoanDisbursementRepository(_db);
             SupportTicket = new SupportTicketRepository(_db);
             TicketMessage = new TicketMessageRepository(_db);
+            Loan = new LoanRepository(_db);
+            Repayment = new RepaymentRepository(_db);
+            SiteSettings = new SiteSettingsRepository(_db);
         }
 
 

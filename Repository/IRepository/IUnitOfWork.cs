@@ -10,6 +10,9 @@ namespace LoanApp.Repository.IRepository
         ILoanDisbursementRepository LoanDisbursement { get;}
         ISupportTicketRepository SupportTicket { get;}
         ITicketMessageRepository TicketMessage { get;}
+        ILoanRepository Loan { get; }
+        IRepaymentRepository Repayment { get; }
+        ISiteSettingsRepository SiteSettings { get; }
         void Save();
     }
 }

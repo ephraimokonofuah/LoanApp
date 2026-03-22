@@ -116,8 +116,8 @@ namespace LoanApp.Migrations
                             Id = "seed-user-1",
                             AccessFailedCount = 0,
                             Address = "123 Main Street",
-                            ConcurrencyStamp = "3a8d4dba-06de-490e-80a2-de14ebe0ad88",
-                            CreatedAt = new DateTime(2026, 3, 20, 11, 50, 7, 844, DateTimeKind.Utc).AddTicks(5030),
+                            ConcurrencyStamp = "4cdb4c70-c311-4608-ab24-708a8aa55beb",
+                            CreatedAt = new DateTime(2026, 3, 22, 21, 1, 47, 940, DateTimeKind.Utc).AddTicks(2310),
                             Email = "john@example.com",
                             EmailConfirmed = true,
                             FullName = "John Doe",
@@ -126,7 +126,7 @@ namespace LoanApp.Migrations
                             NormalizedEmail = "JOHN@EXAMPLE.COM",
                             NormalizedUserName = "JOHN@EXAMPLE.COM",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "5206481f-7ed0-4bb6-9254-5b3a509443b5",
+                            SecurityStamp = "2e06508b-8c1b-4480-bb28-f9e2e9b60b18",
                             TwoFactorEnabled = false,
                             UserName = "john@example.com"
                         },
@@ -135,8 +135,8 @@ namespace LoanApp.Migrations
                             Id = "seed-user-2",
                             AccessFailedCount = 0,
                             Address = "45 Manchester Road",
-                            ConcurrencyStamp = "1895f275-abb0-4a67-9b32-42f6d52e4fc2",
-                            CreatedAt = new DateTime(2026, 3, 20, 11, 50, 7, 844, DateTimeKind.Utc).AddTicks(5150),
+                            ConcurrencyStamp = "1b362c3d-2fa6-40fe-9afe-d0c066985978",
+                            CreatedAt = new DateTime(2026, 3, 22, 21, 1, 47, 940, DateTimeKind.Utc).AddTicks(2490),
                             Email = "mary@example.com",
                             EmailConfirmed = true,
                             FullName = "Mary Smith",
@@ -145,7 +145,7 @@ namespace LoanApp.Migrations
                             NormalizedEmail = "MARY@EXAMPLE.COM",
                             NormalizedUserName = "MARY@EXAMPLE.COM",
                             PhoneNumberConfirmed = false,
-                            SecurityStamp = "10c68971-b1a9-4a24-8317-f52568b05151",
+                            SecurityStamp = "44d3ef06-22a3-401f-9a4a-18bf89670388",
                             TwoFactorEnabled = false,
                             UserName = "mary@example.com"
                         });
@@ -184,7 +184,7 @@ namespace LoanApp.Migrations
                         {
                             Id = 1,
                             Code = "BARC",
-                            CreatedAt = new DateTime(2026, 3, 20, 11, 50, 7, 845, DateTimeKind.Utc).AddTicks(3580),
+                            CreatedAt = new DateTime(2026, 3, 22, 21, 1, 47, 941, DateTimeKind.Utc).AddTicks(5820),
                             IsActive = true,
                             Name = "Barclays"
                         },
@@ -192,7 +192,7 @@ namespace LoanApp.Migrations
                         {
                             Id = 2,
                             Code = "HSBC",
-                            CreatedAt = new DateTime(2026, 3, 20, 11, 50, 7, 845, DateTimeKind.Utc).AddTicks(3580),
+                            CreatedAt = new DateTime(2026, 3, 22, 21, 1, 47, 941, DateTimeKind.Utc).AddTicks(5820),
                             IsActive = true,
                             Name = "HSBC"
                         },
@@ -200,7 +200,7 @@ namespace LoanApp.Migrations
                         {
                             Id = 3,
                             Code = "LLOY",
-                            CreatedAt = new DateTime(2026, 3, 20, 11, 50, 7, 845, DateTimeKind.Utc).AddTicks(3580),
+                            CreatedAt = new DateTime(2026, 3, 22, 21, 1, 47, 941, DateTimeKind.Utc).AddTicks(5820),
                             IsActive = true,
                             Name = "Lloyds Banking Group"
                         },
@@ -208,7 +208,7 @@ namespace LoanApp.Migrations
                         {
                             Id = 4,
                             Code = "NATW",
-                            CreatedAt = new DateTime(2026, 3, 20, 11, 50, 7, 845, DateTimeKind.Utc).AddTicks(3590),
+                            CreatedAt = new DateTime(2026, 3, 22, 21, 1, 47, 941, DateTimeKind.Utc).AddTicks(5830),
                             IsActive = true,
                             Name = "NatWest"
                         },
@@ -216,7 +216,7 @@ namespace LoanApp.Migrations
                         {
                             Id = 5,
                             Code = "SANT",
-                            CreatedAt = new DateTime(2026, 3, 20, 11, 50, 7, 845, DateTimeKind.Utc).AddTicks(3590),
+                            CreatedAt = new DateTime(2026, 3, 22, 21, 1, 47, 941, DateTimeKind.Utc).AddTicks(5830),
                             IsActive = true,
                             Name = "Santander UK"
                         });
@@ -667,25 +667,154 @@ namespace LoanApp.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime>("DueDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("InstallmentNumber")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("InterestPortion")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("IsReadByAdmin")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsReadByUser")
+                        .HasColumnType("bit");
+
                     b.Property<int>("LoanId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("PaymentDate")
+                    b.Property<DateTime?>("PaidAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("PaymentMethod")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<string>("PaymentDetails")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
 
-                    b.Property<string>("Reference")
+                    b.Property<DateTime?>("PaymentDetailsSentAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PaymentMethodRequested")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("PaymentRequestedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("PrincipalPortion")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TransactionReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("UserId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("LoanId");
 
+                    b.HasIndex("UserId");
+
                     b.ToTable("Repayments");
+                });
+
+            modelBuilder.Entity("LoanApp.Models.SiteSettings", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AddressLine1")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("AddressLine2")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("BusinessHours")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("FacebookUrl")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("FooterDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("InstagramUrl")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("LinkedInUrl")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("NmlsNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("SecondaryEmail")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("SecondaryPhone")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("SiteName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("TwitterUrl")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("SiteSettings");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            AddressLine1 = "123 Finance Street, Suite 400",
+                            AddressLine2 = "New York, NY 10001",
+                            BusinessHours = "Mon – Fri: 8AM – 6PM EST",
+                            Email = "support@loanapp.com",
+                            FooterDescription = "Trusted lending solutions with competitive rates and transparent terms. We're committed to helping you achieve your financial goals with fast approvals and flexible repayment options.",
+                            NmlsNumber = "123456",
+                            Phone = "(800) 555-LOAN",
+                            SiteName = "LoanApp",
+                            UpdatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                        });
                 });
 
             modelBuilder.Entity("LoanApp.Models.SupportTicket", b =>
@@ -1009,10 +1138,18 @@ namespace LoanApp.Migrations
                     b.HasOne("LoanApp.Models.Loan", "Loan")
                         .WithMany("Repayments")
                         .HasForeignKey("LoanId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LoanApp.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Loan");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("LoanApp.Models.SupportTicket", b =>

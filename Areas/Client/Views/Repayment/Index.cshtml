@@ -1,0 +1,224 @@
+@model List<LoanApp.Models.Repayment>
+
+@{
+    ViewData["Title"] = "My Repayments";
+
+    var totalAmount = Model.Sum(r => r.Amount);
+    var paidAmount = Model.Where(r => r.Status == RepaymentStatus.Paid).Sum(r => r.Amount);
+    var remainingAmount = totalAmount - paidAmount;
+    var paidCount = Model.Count(r => r.Status == RepaymentStatus.Paid);
+    var dueCount = Model.Count(r => r.Status == RepaymentStatus.Due || r.Status == RepaymentStatus.PaymentRequested || r.Status == RepaymentStatus.DetailsSent);
+    var missedCount = Model.Count(r => r.Status == RepaymentStatus.Missed);
+    var upcomingCount = Model.Count(r => r.Status == RepaymentStatus.Upcoming);
+    var progressPercent = totalAmount > 0 ? Math.Round((paidAmount / totalAmount) * 100, 1) : 0;
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1"><i class="bi bi-calendar2-check text-primary me-2"></i>My Repayment Schedule</h3>
+            <p class="text-muted mb-0">Track your loan repayments and request payment details.</p>
+        </div>
+    </div>
+
+    @if (TempData["success"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle me-1"></i> @TempData["success"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+    @if (TempData["error"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-circle me-1"></i> @TempData["error"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
+
+    @if (!Model.Any())
+    {
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-calendar-x text-muted" style="font-size: 4rem;"></i>
+                <h5 class="mt-3 text-muted">No Repayments Yet</h5>
+                <p class="text-muted">Your repayment schedule will appear here once your loan has been disbursed.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Progress Overview -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-4">
+                        <h6 class="text-muted mb-2">Repayment Progress</h6>
+                        <div class="progress" style="height: 12px;">
+                            <div class="progress-bar bg-success" role="progressbar" style="width: @progressPercent%">
+                                @progressPercent%
+                            </div>
+                        </div>
+                        <small class="text-muted mt-1 d-block">@paidCount of @Model.Count installments paid</small>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="row g-3 mt-2 mt-md-0">
+                            <div class="col-6 col-lg-3 text-center">
+                                <div class="fw-bold text-success fs-5">$@paidAmount.ToString("N2")</div>
+                                <small class="text-muted">Paid</small>
+                            </div>
+                            <div class="col-6 col-lg-3 text-center">
+                                <div class="fw-bold text-primary fs-5">$@remainingAmount.ToString("N2")</div>
+                                <small class="text-muted">Remaining</small>
+                            </div>
+                            <div class="col-6 col-lg-3 text-center">
+                                <div class="fw-bold text-warning fs-5">@dueCount</div>
+                                <small class="text-muted">Due / In Progress</small>
+                            </div>
+                            <div class="col-6 col-lg-3 text-center">
+                                <div class="fw-bold text-danger fs-5">@missedCount</div>
+                                <small class="text-muted">Missed</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-primary">
+                    <div class="card-body text-center py-3">
+                        <i class="bi bi-cash-coin text-primary" style="font-size: 1.5rem;"></i>
+                        <h5 class="fw-bold mb-0 mt-1">$@totalAmount.ToString("N2")</h5>
+                        <small class="text-muted">Total Repayment</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-success">
+                    <div class="card-body text-center py-3">
+                        <i class="bi bi-check-circle text-success" style="font-size: 1.5rem;"></i>
+                        <h5 class="fw-bold mb-0 mt-1">@paidCount</h5>
+                        <small class="text-muted">Paid</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-warning">
+                    <div class="card-body text-center py-3">
+                        <i class="bi bi-hourglass-split text-warning" style="font-size: 1.5rem;"></i>
+                        <h5 class="fw-bold mb-0 mt-1">@upcomingCount</h5>
+                        <small class="text-muted">Upcoming</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm h-100 border-start border-4 border-danger">
+                    <div class="card-body text-center py-3">
+                        <i class="bi bi-exclamation-triangle text-danger" style="font-size: 1.5rem;"></i>
+                        <h5 class="fw-bold mb-0 mt-1">@missedCount</h5>
+                        <small class="text-muted">Missed</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Repayment Table -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-list-ol me-2"></i>Payment Schedule</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="repaymentTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3">#</th>
+                                <th>Due Date</th>
+                                <th>Principal</th>
+                                <th>Interest</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th class="text-end pe-3">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var repayment in Model)
+                            {
+                                var rowClass = repayment.Status switch
+                                {
+                                    RepaymentStatus.Paid => "table-success",
+                                    RepaymentStatus.Missed => "table-danger",
+                                    RepaymentStatus.Due => "table-warning",
+                                    RepaymentStatus.PaymentRequested => "table-info",
+                                    RepaymentStatus.DetailsSent => "table-info",
+                                    _ => ""
+                                };
+                                <tr class="@rowClass">
+                                    <td class="ps-3 fw-bold">@repayment.InstallmentNumber</td>
+                                    <td>
+                                        <i class="bi bi-calendar3 me-1"></i>@repayment.DueDate.ToString("dd MMM yyyy")
+                                        @if (!repayment.IsReadByUser)
+                                        {
+                                            <span class="badge bg-danger rounded-pill ms-1">New</span>
+                                        }
+                                    </td>
+                                    <td>$@repayment.PrincipalPortion.ToString("N2")</td>
+                                    <td>$@repayment.InterestPortion.ToString("N2")</td>
+                                    <td class="fw-bold">$@repayment.Amount.ToString("N2")</td>
+                                    <td>
+                                        @switch (repayment.Status)
+                                        {
+                                            case RepaymentStatus.Paid:
+                                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Paid</span>
+                                                break;
+                                            case RepaymentStatus.Due:
+                                                <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Due</span>
+                                                break;
+                                            case RepaymentStatus.Missed:
+                                                <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Missed</span>
+                                                break;
+                                            case RepaymentStatus.PaymentRequested:
+                                                <span class="badge bg-info"><i class="bi bi-send me-1"></i>Requested</span>
+                                                break;
+                                            case RepaymentStatus.DetailsSent:
+                                                <span class="badge bg-primary"><i class="bi bi-envelope-check me-1"></i>Details Sent</span>
+                                                break;
+                                            default:
+                                                <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Upcoming</span>
+                                                break;
+                                        }
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <a asp-action="Details" asp-route-id="@repayment.Id" class="btn btn-sm btn-outline-primary">
+                                            <i class="bi bi-eye me-1"></i>View
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#repaymentTable').DataTable({
+                paging: false,
+                ordering: false,
+                info: false,
+                searching: true,
+                language: {
+                    search: '<i class="bi bi-search me-1"></i>',
+                    searchPlaceholder: "Filter installments..."
+                }
+            });
+        });
+    </script>
+}
