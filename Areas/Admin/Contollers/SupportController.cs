@@ -8,7 +8,7 @@ using System.Security.Claims;
 namespace LoanApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "GlobalAdmin,Admin")]
     public class SupportController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -169,6 +169,22 @@ namespace LoanApp.Areas.Admin.Controllers
 
             TempData["success"] = "Ticket assigned successfully.";
             return RedirectToAction(nameof(Details), new { id = ticketId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "GlobalAdmin")]
+        public IActionResult Delete(int id)
+        {
+            var ticket = _unitOfWork.SupportTicket.Get(t => t.Id == id);
+            if (ticket == null) return NotFound();
+
+            // Messages cascade-delete with the ticket
+            _unitOfWork.SupportTicket.Remove(ticket);
+            _unitOfWork.Save();
+
+            TempData["success"] = $"Support Ticket #{ticket.TicketNumber} has been permanently deleted.";
+            return RedirectToAction("Index");
         }
 
         #region API

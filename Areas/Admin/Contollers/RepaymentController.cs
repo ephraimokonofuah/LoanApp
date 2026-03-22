@@ -1,12 +1,13 @@
 using LoanApp.Models;
 using LoanApp.Repository.IRepository;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LoanApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "GlobalAdmin,Admin")]
     public class RepaymentController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -128,6 +129,22 @@ namespace LoanApp.Areas.Admin.Controllers
                 }
             }
             if (changed) _unitOfWork.Save();
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "GlobalAdmin")]
+        public IActionResult Delete(int id)
+        {
+            var repayment = _unitOfWork.Repayment.Get(r => r.Id == id);
+            if (repayment == null) return NotFound();
+
+            var loanId = repayment.LoanId;
+            _unitOfWork.Repayment.Remove(repayment);
+            _unitOfWork.Save();
+
+            TempData["success"] = $"Repayment installment #{repayment.InstallmentNumber} has been permanently deleted.";
+            return RedirectToAction("Index");
         }
 
         #region API CALLS

@@ -188,6 +188,18 @@
                         <a asp-action="Index" class="btn btn-outline-secondary">Cancel</a>
                     </div>
                 </form>
+
+                @if (User.IsInRole("GlobalAdmin"))
+                {
+                    <hr class="my-3" />
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" name="id" value="@Model.DisbursementId" />
+                        <button type="submit" class="btn btn-outline-danger w-100"
+                                onclick="return confirm('PERMANENT DELETE: This will delete the disbursement, associated loan, and all repayment records. This cannot be undone. Continue?')">
+                            <i class="bi bi-trash3 me-1"></i>Delete Disbursement
+                        </button>
+                    </form>
+                }
             </div>
         </div>
     }

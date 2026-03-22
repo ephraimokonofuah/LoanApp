@@ -7,24 +7,27 @@ using Microsoft.AspNetCore.Mvc;
 namespace LoanApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "GlobalAdmin,Admin")]
     public class UserController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly IWebHostEnvironment _hostEnvironment;
 
         public UserController(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IUnitOfWork unitOfWork,
-            SignInManager<ApplicationUser> signInManager)
+            SignInManager<ApplicationUser> signInManager,
+            IWebHostEnvironment hostEnvironment)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _unitOfWork = unitOfWork;
             _signInManager = signInManager;
+            _hostEnvironment = hostEnvironment;
         }
 
         public async Task<IActionResult> Index()
@@ -59,7 +62,7 @@ namespace LoanApp.Areas.Admin.Controllers
             ViewBag.TotalUsers = userList.Count;
             ViewBag.ActiveUsers = userList.Count(u => !u.IsBanned);
             ViewBag.BannedUsers = userList.Count(u => u.IsBanned);
-            ViewBag.AdminUsers = userList.Count(u => u.Roles.Contains("Admin"));
+            ViewBag.AdminUsers = userList.Count(u => u.Roles.Contains("Admin") || u.Roles.Contains("GlobalAdmin"));
 
             return View(userList);
         }
@@ -111,6 +114,13 @@ namespace LoanApp.Areas.Admin.Controllers
             if (user.Id == currentUser?.Id)
             {
                 TempData["error"] = "You cannot ban your own account.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            // Prevent regular Admin from banning a GlobalAdmin
+            if (await _userManager.IsInRoleAsync(user, "GlobalAdmin") && !await _userManager.IsInRoleAsync(currentUser!, "GlobalAdmin"))
+            {
+                TempData["error"] = "Only a Global Admin can ban another Global Admin.";
                 return RedirectToAction("Details", new { id });
             }
 
@@ -175,6 +185,45 @@ namespace LoanApp.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> PromoteToGlobalAdmin(string id)
+        {
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (!await _userManager.IsInRoleAsync(currentUser!, "GlobalAdmin"))
+            {
+                TempData["error"] = "Only a Global Admin can promote users to Global Admin.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            if (!await _roleManager.RoleExistsAsync("GlobalAdmin"))
+            {
+                await _roleManager.CreateAsync(new IdentityRole("GlobalAdmin"));
+            }
+
+            if (!await _userManager.IsInRoleAsync(user, "GlobalAdmin"))
+            {
+                // Remove existing roles
+                if (await _userManager.IsInRoleAsync(user, "User"))
+                    await _userManager.RemoveFromRoleAsync(user, "User");
+                if (await _userManager.IsInRoleAsync(user, "Admin"))
+                    await _userManager.RemoveFromRoleAsync(user, "Admin");
+
+                await _userManager.AddToRoleAsync(user, "GlobalAdmin");
+                await _userManager.UpdateSecurityStampAsync(user);
+                TempData["success"] = $"{user.FullName ?? user.Email} has been promoted to Global Admin.";
+            }
+            else
+            {
+                TempData["info"] = "User is already a Global Admin.";
+            }
+
+            return RedirectToAction("Details", new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DemoteFromAdmin(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -187,17 +236,30 @@ namespace LoanApp.Areas.Admin.Controllers
                 return RedirectToAction("Details", new { id });
             }
 
+            // Prevent regular Admin from demoting a GlobalAdmin
+            if (await _userManager.IsInRoleAsync(user, "GlobalAdmin") && !await _userManager.IsInRoleAsync(currentUser!, "GlobalAdmin"))
+            {
+                TempData["error"] = "Only a Global Admin can demote another Global Admin.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            // Remove GlobalAdmin or Admin role
+            if (await _userManager.IsInRoleAsync(user, "GlobalAdmin"))
+            {
+                await _userManager.RemoveFromRoleAsync(user, "GlobalAdmin");
+            }
             if (await _userManager.IsInRoleAsync(user, "Admin"))
             {
                 await _userManager.RemoveFromRoleAsync(user, "Admin");
-                // Add User role back
-                if (!await _userManager.IsInRoleAsync(user, "User"))
-                {
-                    await _userManager.AddToRoleAsync(user, "User");
-                }
-                await _userManager.UpdateSecurityStampAsync(user);
-                TempData["success"] = $"{user.FullName ?? user.Email} has been demoted to User.";
             }
+
+            // Add User role back
+            if (!await _userManager.IsInRoleAsync(user, "User"))
+            {
+                await _userManager.AddToRoleAsync(user, "User");
+            }
+            await _userManager.UpdateSecurityStampAsync(user);
+            TempData["success"] = $"{user.FullName ?? user.Email} has been demoted to User.";
 
             return RedirectToAction("Details", new { id });
         }
@@ -238,6 +300,99 @@ namespace LoanApp.Areas.Admin.Controllers
             }
 
             return RedirectToAction("Details", new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "GlobalAdmin")]
+        public async Task<IActionResult> DeleteUser(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null) return NotFound();
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (user.Id == currentUser?.Id)
+            {
+                TempData["error"] = "You cannot delete your own account.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            if (await _userManager.IsInRoleAsync(user, "GlobalAdmin"))
+            {
+                TempData["error"] = "You cannot delete another Global Admin account. Demote them first.";
+                return RedirectToAction("Details", new { id });
+            }
+
+            var userId = user.Id;
+            var userName = user.FullName ?? user.Email;
+
+            // 1. Unassign from support tickets where this user is assigned admin
+            var assignedTickets = _unitOfWork.SupportTicket.GetAll(t => t.AssignedToId == userId).ToList();
+            foreach (var ticket in assignedTickets)
+            {
+                ticket.AssignedToId = null;
+                _unitOfWork.SupportTicket.Update(ticket);
+            }
+            _unitOfWork.Save();
+
+            // 2. Delete ticket messages sent by user on OTHER users' tickets
+            var sentMessages = _unitOfWork.TicketMessage.GetAll(
+                m => m.SenderId == userId, includeProperties: "SupportTicket"
+            ).Where(m => m.SupportTicket.UserId != userId).ToList();
+            _unitOfWork.TicketMessage.RemoveRange(sentMessages);
+
+            // 3. Delete user's own support tickets (cascade deletes their messages)
+            var userTickets = _unitOfWork.SupportTicket.GetAll(t => t.UserId == userId).ToList();
+            _unitOfWork.SupportTicket.RemoveRange(userTickets);
+            _unitOfWork.Save();
+
+            // 4. Delete repayments
+            var repayments = _unitOfWork.Repayment.GetAll(r => r.UserId == userId).ToList();
+            _unitOfWork.Repayment.RemoveRange(repayments);
+
+            // 5. Delete loans
+            var loans = _unitOfWork.Loan.GetAll(l => l.UserId == userId).ToList();
+            _unitOfWork.Loan.RemoveRange(loans);
+
+            // 6. Delete disbursements
+            var disbursements = _unitOfWork.LoanDisbursement.GetAll(d => d.UserId == userId).ToList();
+            _unitOfWork.LoanDisbursement.RemoveRange(disbursements);
+            _unitOfWork.Save();
+
+            // 7. Delete documents + physical files
+            var applications = _unitOfWork.LoanApplication.GetAll(a => a.UserId == userId).ToList();
+            foreach (var app in applications)
+            {
+                var documents = _unitOfWork.Document.GetDocumentsByApplicationId(app.Id).ToList();
+                foreach (var doc in documents)
+                {
+                    var filePath = Path.Combine(_hostEnvironment.WebRootPath, doc.FilePath.TrimStart('/', '\\'));
+                    if (System.IO.File.Exists(filePath))
+                    {
+                        System.IO.File.Delete(filePath);
+                    }
+                }
+                _unitOfWork.Document.RemoveRange(documents);
+            }
+
+            // 8. Delete loan applications
+            _unitOfWork.LoanApplication.RemoveRange(applications);
+
+            // 9. Delete eligibility checks
+            var eligibilityChecks = _unitOfWork.EligibilityCheck.GetAll(e => e.UserId == userId).ToList();
+            _unitOfWork.EligibilityCheck.RemoveRange(eligibilityChecks);
+            _unitOfWork.Save();
+
+            // 10. Remove all roles and delete the user
+            var roles = await _userManager.GetRolesAsync(user);
+            if (roles.Any())
+            {
+                await _userManager.RemoveFromRolesAsync(user, roles);
+            }
+            await _userManager.DeleteAsync(user);
+
+            TempData["success"] = $"User \"{userName}\" and all related records have been permanently deleted.";
+            return RedirectToAction("Index");
         }
 
         #region API CALLS

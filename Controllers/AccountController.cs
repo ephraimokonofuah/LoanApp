@@ -32,7 +32,7 @@ namespace LoanApp.Controllers
                 await _signInManager.RefreshSignInAsync(user);
             }
 
-            if (await _userManager.IsInRoleAsync(user, "Admin"))
+            if (await _userManager.IsInRoleAsync(user, "GlobalAdmin") || await _userManager.IsInRoleAsync(user, "Admin"))
             {
                 return RedirectToAction("Index", "LoanApplication", new { area = "Admin" });
             }

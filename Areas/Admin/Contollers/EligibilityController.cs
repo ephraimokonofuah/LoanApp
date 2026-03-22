@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LoanApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "GlobalAdmin,Admin")]
     public class EligibilityController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -92,6 +92,21 @@ namespace LoanApp.Areas.Admin.Controllers
             _unitOfWork.Save();
 
             return RedirectToAction("Details", new { id });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "GlobalAdmin")]
+        public IActionResult Delete(int id)
+        {
+            var check = _unitOfWork.EligibilityCheck.Get(e => e.Id == id);
+            if (check == null) return NotFound();
+
+            _unitOfWork.EligibilityCheck.Remove(check);
+            _unitOfWork.Save();
+
+            TempData["success"] = $"Eligibility Check #{id} has been permanently deleted.";
+            return RedirectToAction("Index");
         }
     }
 }

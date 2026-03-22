@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LoanApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "GlobalAdmin,Admin")]
     public class DocumentController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;

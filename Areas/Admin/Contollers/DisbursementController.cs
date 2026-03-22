@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace LoanApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "GlobalAdmin,Admin")]
     public class DisbursementController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -176,6 +176,30 @@ namespace LoanApp.Areas.Admin.Controllers
                 (DisbursementStatus.ReadyForPayment, DisbursementStatus.Failed) => true,
                 _ => false
             };
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "GlobalAdmin")]
+        public IActionResult Delete(int id)
+        {
+            var disbursement = _unitOfWork.LoanDisbursement.Get(d => d.Id == id);
+            if (disbursement == null) return NotFound();
+
+            // Delete loan + repayments that were generated from this disbursement
+            var loan = _unitOfWork.Loan.Get(l => l.LoanApplicationId == disbursement.LoanApplicationId);
+            if (loan != null)
+            {
+                var repayments = _unitOfWork.Repayment.GetAll(r => r.LoanId == loan.Id).ToList();
+                _unitOfWork.Repayment.RemoveRange(repayments);
+                _unitOfWork.Loan.Remove(loan);
+            }
+
+            _unitOfWork.LoanDisbursement.Remove(disbursement);
+            _unitOfWork.Save();
+
+            TempData["success"] = $"Disbursement #{id} and related records have been permanently deleted.";
+            return RedirectToAction("Index");
         }
 
         #region API CALLS

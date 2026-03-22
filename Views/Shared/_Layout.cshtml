@@ -9,7 +9,8 @@
     var siteName = siteSettings?.SiteName ?? "LoanApp";
     var isSignedIn = SignInManager.IsSignedIn(User);
     var isUser = isSignedIn && User.IsInRole("User");
-    var isAdmin = isSignedIn && User.IsInRole("Admin");
+    var isGlobalAdmin = isSignedIn && User.IsInRole("GlobalAdmin");
+    var isAdmin = isSignedIn && (User.IsInRole("Admin") || isGlobalAdmin);
     var hasSidebar = isUser || isAdmin;
 
     // Active route detection
@@ -151,7 +152,14 @@
                     @if (isAdmin)
                     {
                         <div class="sidebar-header px-3 py-3 border-bottom border-secondary">
-                            <span class="badge bg-danger px-2 py-1"><i class="bi bi-shield-lock me-1"></i>Admin Panel</span>
+                            @if (isGlobalAdmin)
+                            {
+                                <span class="badge bg-warning text-dark px-2 py-1"><i class="bi bi-shield-fill-check me-1"></i>Global Admin</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger px-2 py-1"><i class="bi bi-shield-lock me-1"></i>Admin Panel</span>
+                            }
                         </div>
                         <nav class="sidebar-nav">
                             <div class="sidebar-section-title">Dashboard</div>

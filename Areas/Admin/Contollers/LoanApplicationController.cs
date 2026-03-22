@@ -9,17 +9,19 @@ using Microsoft.AspNetCore.Mvc;
 namespace LoanApp.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = "GlobalAdmin,Admin")]
     public class LoanApplicationController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailSender _emailSender;
         private readonly UserManager<ApplicationUser> _userManager;
-        public LoanApplicationController(IUnitOfWork unitOfWork, IEmailSender emailSender, UserManager<ApplicationUser> userManager)
+        private readonly IWebHostEnvironment _hostEnvironment;
+        public LoanApplicationController(IUnitOfWork unitOfWork, IEmailSender emailSender, UserManager<ApplicationUser> userManager, IWebHostEnvironment hostEnvironment)
         {
             _unitOfWork = unitOfWork;
             _emailSender = emailSender;
             _userManager = userManager;
+            _hostEnvironment = hostEnvironment;
         }
 
         public IActionResult Index()
@@ -138,6 +140,49 @@ namespace LoanApp.Areas.Admin.Controllers
             {
                 await _emailSender.SendEmailAsync(user.Email!, "Loan Application Rejected", $"Your loan application (ID: {loanApplication.Id}) has been rejected.");
             }
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [Authorize(Roles = "GlobalAdmin")]
+        public IActionResult Delete(int id)
+        {
+            var application = _unitOfWork.LoanApplication.Get(a => a.Id == id);
+            if (application == null) return NotFound();
+
+            // Delete repayments via loan
+            var loan = _unitOfWork.Loan.Get(l => l.LoanApplicationId == id);
+            if (loan != null)
+            {
+                var repayments = _unitOfWork.Repayment.GetAll(r => r.LoanId == loan.Id).ToList();
+                _unitOfWork.Repayment.RemoveRange(repayments);
+                _unitOfWork.Loan.Remove(loan);
+            }
+
+            // Delete disbursement
+            var disbursement = _unitOfWork.LoanDisbursement.Get(d => d.LoanApplicationId == id);
+            if (disbursement != null)
+            {
+                _unitOfWork.LoanDisbursement.Remove(disbursement);
+            }
+
+            // Delete documents + physical files
+            var documents = _unitOfWork.Document.GetDocumentsByApplicationId(id).ToList();
+            foreach (var doc in documents)
+            {
+                var filePath = Path.Combine(_hostEnvironment.WebRootPath, doc.FilePath.TrimStart('/', '\\'));
+                if (System.IO.File.Exists(filePath))
+                {
+                    System.IO.File.Delete(filePath);
+                }
+            }
+            _unitOfWork.Document.RemoveRange(documents);
+
+            _unitOfWork.LoanApplication.Remove(application);
+            _unitOfWork.Save();
+
+            TempData["success"] = $"Loan Application #{id} and all related records have been permanently deleted.";
             return RedirectToAction("Index");
         }
 
