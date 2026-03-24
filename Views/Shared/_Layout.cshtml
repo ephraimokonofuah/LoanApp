@@ -102,7 +102,11 @@
                         <i class="bi bi-list"></i>
                     </button>
                 }
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <!-- Google Translate -->
+                    <li class="nav-item d-flex align-items-center me-2">
+                        <div id="google_translate_element"></div>
+                    </li>
                     @if (isSignedIn)
                     {
                         var dropdownUser = await UserManager.GetUserAsync(User);
@@ -462,5 +466,18 @@
     <script src="//cdn.datatables.net/2.3.7/js/dataTables.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
+    <!-- Google Translate -->
+    <script>
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL,
+                autoDisplay: true,
+                multilanguagePage: true
+            }, 'google_translate_element');
+        }
+    </script>
+    <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>

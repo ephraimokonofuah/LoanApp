@@ -9,6 +9,46 @@ html {
 }
 
 /* ================================
+   Google Translate Widget
+   ================================ */
+#google_translate_element {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#google_translate_element .goog-te-gadget {
+  font-size: 0;
+  color: transparent;
+  margin: 0;
+}
+
+#google_translate_element .goog-te-gadget .goog-te-combo {
+  font-size: 14px;
+  padding: 4px 8px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 6px;
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  outline: none;
+  cursor: pointer;
+  appearance: auto;
+}
+
+#google_translate_element .goog-te-gadget .goog-te-combo option {
+  color: #333;
+  background: #fff;
+}
+
+/* Hide only the Google Translate top banner bar, not the widget itself */
+body > .skiptranslate {
+  display: none !important;
+}
+
+body {
+  top: 0 !important;
+}
+
+/* ================================
    Home Page Styles
    ================================ */
 
