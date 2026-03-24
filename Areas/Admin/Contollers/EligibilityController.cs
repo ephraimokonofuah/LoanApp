@@ -1,7 +1,9 @@
 using LoanApp.Models;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LoanApp.Areas.Admin.Controllers
@@ -12,11 +14,13 @@ namespace LoanApp.Areas.Admin.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailSender _emailSender;
 
-        public EligibilityController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public EligibilityController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IEmailSender emailSender)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _emailSender = emailSender;
         }
 
         public IActionResult Index()
@@ -71,6 +75,15 @@ namespace LoanApp.Areas.Admin.Controllers
             _unitOfWork.EligibilityCheck.Update(check);
             _unitOfWork.Save();
 
+            // Send email to user
+            var user = await _userManager.FindByIdAsync(check.UserId);
+            if (user != null)
+            {
+                await _emailSender.SendEmailAsync(user.Email,
+                    "Eligibility Check Approved - LoanApp",
+                    EmailTemplates.EligibilityApproved(user.FullName ?? user.Email, check.Id, check.DesiredLoanAmount));
+            }
+
             return RedirectToAction("Details", new { id });
         }
 
@@ -90,6 +103,15 @@ namespace LoanApp.Areas.Admin.Controllers
 
             _unitOfWork.EligibilityCheck.Update(check);
             _unitOfWork.Save();
+
+            // Send email to user
+            var user = await _userManager.FindByIdAsync(check.UserId);
+            if (user != null)
+            {
+                await _emailSender.SendEmailAsync(user.Email,
+                    "Eligibility Check Update - LoanApp",
+                    EmailTemplates.EligibilityRejected(user.FullName ?? user.Email, check.Id, adminNotes));
+            }
 
             return RedirectToAction("Details", new { id });
         }

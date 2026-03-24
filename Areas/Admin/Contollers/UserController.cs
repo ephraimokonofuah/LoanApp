@@ -1,7 +1,9 @@
 using LoanApp.Models;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LoanApp.Areas.Admin.Controllers
@@ -15,19 +17,22 @@ namespace LoanApp.Areas.Admin.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly IEmailSender _emailSender;
 
         public UserController(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
             IUnitOfWork unitOfWork,
             SignInManager<ApplicationUser> signInManager,
-            IWebHostEnvironment hostEnvironment)
+            IWebHostEnvironment hostEnvironment,
+            IEmailSender emailSender)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _unitOfWork = unitOfWork;
             _signInManager = signInManager;
             _hostEnvironment = hostEnvironment;
+            _emailSender = emailSender;
         }
 
         public async Task<IActionResult> Index()
@@ -132,6 +137,10 @@ namespace LoanApp.Areas.Admin.Controllers
             // Force sign out the banned user by updating their security stamp
             await _userManager.UpdateSecurityStampAsync(user);
 
+            await _emailSender.SendEmailAsync(user.Email,
+                "Account Suspended - LoanApp",
+                EmailTemplates.AccountBanned(user.FullName ?? user.Email, user.BanReason));
+
             TempData["success"] = $"{user.FullName ?? user.Email} has been banned.";
             return RedirectToAction("Details", new { id });
         }
@@ -147,6 +156,10 @@ namespace LoanApp.Areas.Admin.Controllers
             user.BanReason = null;
             user.BannedAt = null;
             await _userManager.UpdateAsync(user);
+
+            await _emailSender.SendEmailAsync(user.Email,
+                "Account Activated - LoanApp",
+                EmailTemplates.AccountActivated(user.FullName ?? user.Email));
 
             TempData["success"] = $"{user.FullName ?? user.Email} has been activated.";
             return RedirectToAction("Details", new { id });
@@ -173,6 +186,11 @@ namespace LoanApp.Areas.Admin.Controllers
                 }
                 await _userManager.AddToRoleAsync(user, "Admin");
                 await _userManager.UpdateSecurityStampAsync(user);
+
+                await _emailSender.SendEmailAsync(user.Email,
+                    "Role Promotion - Admin",
+                    EmailTemplates.RolePromotion(user.FullName ?? user.Email, "Admin"));
+
                 TempData["success"] = $"{user.FullName ?? user.Email} has been promoted to Admin.";
             }
             else
@@ -212,6 +230,11 @@ namespace LoanApp.Areas.Admin.Controllers
 
                 await _userManager.AddToRoleAsync(user, "GlobalAdmin");
                 await _userManager.UpdateSecurityStampAsync(user);
+
+                await _emailSender.SendEmailAsync(user.Email,
+                    "Role Promotion - Global Admin",
+                    EmailTemplates.RolePromotion(user.FullName ?? user.Email, "Global Admin"));
+
                 TempData["success"] = $"{user.FullName ?? user.Email} has been promoted to Global Admin.";
             }
             else

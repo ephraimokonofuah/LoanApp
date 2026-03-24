@@ -1,7 +1,9 @@
 using LoanApp.Models;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -13,11 +15,13 @@ namespace LoanApp.Areas.Admin.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailSender _emailSender;
 
-        public SupportController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public SupportController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IEmailSender emailSender)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _emailSender = emailSender;
         }
 
         public IActionResult Index()
@@ -59,7 +63,7 @@ namespace LoanApp.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Reply(int ticketId, string message)
+        public async Task<IActionResult> Reply(int ticketId, string message)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -105,13 +109,22 @@ namespace LoanApp.Areas.Admin.Controllers
             _unitOfWork.SupportTicket.Update(ticket);
             _unitOfWork.Save();
 
+            // Send email to ticket owner
+            var user = await _userManager.FindByIdAsync(ticket.UserId);
+            if (user != null)
+            {
+                await _emailSender.SendEmailAsync(user.Email,
+                    $"New Reply on Ticket #{ticket.TicketNumber}",
+                    EmailTemplates.SupportTicketReply(user.FullName ?? user.Email, ticket.TicketNumber, ticket.Subject, true));
+            }
+
             TempData["success"] = "Reply sent successfully!";
             return RedirectToAction(nameof(Details), new { id = ticketId });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UpdateStatus(int ticketId, TicketStatus status)
+        public async Task<IActionResult> UpdateStatus(int ticketId, TicketStatus status)
         {
             var ticket = _unitOfWork.SupportTicket.Get(t => t.Id == ticketId, tracked: true);
 
@@ -141,6 +154,15 @@ namespace LoanApp.Areas.Admin.Controllers
 
             _unitOfWork.SupportTicket.Update(ticket);
             _unitOfWork.Save();
+
+            // Send email to ticket owner
+            var user = await _userManager.FindByIdAsync(ticket.UserId);
+            if (user != null)
+            {
+                await _emailSender.SendEmailAsync(user.Email,
+                    $"Ticket #{ticket.TicketNumber} Status Updated",
+                    EmailTemplates.SupportTicketStatusUpdate(user.FullName ?? user.Email, ticket.TicketNumber, status.ToString()));
+            }
 
             TempData["success"] = $"Ticket status updated to {status}.";
             return RedirectToAction(nameof(Details), new { id = ticketId });

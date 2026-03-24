@@ -1,7 +1,9 @@
 using LoanApp.Models;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LoanApp.Areas.Client.Controllers
@@ -12,11 +14,15 @@ namespace LoanApp.Areas.Client.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _config;
 
-        public RepaymentController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public RepaymentController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IEmailSender emailSender, IConfiguration config)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _emailSender = emailSender;
+            _config = config;
         }
 
         public IActionResult Index()
@@ -53,7 +59,7 @@ namespace LoanApp.Areas.Client.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult RequestPayment(int id, PaymentMethodType paymentMethod)
+        public async Task<IActionResult> RequestPayment(int id, PaymentMethodType paymentMethod)
         {
             var userId = _userManager.GetUserId(User);
             var repayment = _unitOfWork.Repayment.Get(
@@ -99,13 +105,23 @@ namespace LoanApp.Areas.Client.Controllers
             _unitOfWork.Repayment.Update(repayment);
             _unitOfWork.Save();
 
+            // Notify admin about payment request
+            var adminEmail = _config["EmailSettings:AdminEmail"];
+            var currentUser = await _userManager.GetUserAsync(User);
+            if (!string.IsNullOrEmpty(adminEmail) && currentUser != null)
+            {
+                await _emailSender.SendEmailAsync(adminEmail, "New Payment Request",
+                    EmailTemplates.PaymentRequested(currentUser.FullName ?? "User", repayment.InstallmentNumber,
+                        repayment.Amount, paymentMethod.ToString()));
+            }
+
             TempData["success"] = $"Payment details for {paymentMethod} have been requested. You will be notified once the admin provides the details.";
             return RedirectToAction("Details", new { id });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ConfirmPayment(int id, string transactionReference)
+        public async Task<IActionResult> ConfirmPayment(int id, string transactionReference)
         {
             var userId = _userManager.GetUserId(User);
             var repayment = _unitOfWork.Repayment.Get(
@@ -125,6 +141,16 @@ namespace LoanApp.Areas.Client.Controllers
 
             _unitOfWork.Repayment.Update(repayment);
             _unitOfWork.Save();
+
+            // Notify admin about transaction reference
+            var txAdminEmail = _config["EmailSettings:AdminEmail"];
+            var txUser = await _userManager.GetUserAsync(User);
+            if (!string.IsNullOrEmpty(txAdminEmail) && txUser != null)
+            {
+                await _emailSender.SendEmailAsync(txAdminEmail, "Transaction Reference Submitted",
+                    EmailTemplates.TransactionReferenceSubmitted(txUser.FullName ?? "User",
+                        repayment.InstallmentNumber, repayment.Amount, transactionReference));
+            }
 
             TempData["success"] = "Transaction reference submitted. Admin will verify and confirm your payment.";
             return RedirectToAction("Details", new { id });

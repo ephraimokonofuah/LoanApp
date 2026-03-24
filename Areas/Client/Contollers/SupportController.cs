@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using LoanApp.Models;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using System.Security.Claims;
 
 namespace LoanApp.Areas.Client.Controllers
@@ -13,11 +15,15 @@ namespace LoanApp.Areas.Client.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _config;
 
-        public SupportController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public SupportController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IEmailSender emailSender, IConfiguration config)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _emailSender = emailSender;
+            _config = config;
         }
 
         public IActionResult Index()
@@ -38,7 +44,7 @@ namespace LoanApp.Areas.Client.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(string subject, string message, TicketCategory category, TicketPriority priority)
+        public async Task<IActionResult> Create(string subject, string message, TicketCategory category, TicketPriority priority)
         {
             if (string.IsNullOrWhiteSpace(subject) || string.IsNullOrWhiteSpace(message))
             {
@@ -75,6 +81,16 @@ namespace LoanApp.Areas.Client.Controllers
             _unitOfWork.TicketMessage.Add(ticketMessage);
             _unitOfWork.Save();
 
+            // Notify admin of new support ticket
+            var adminEmail = _config["EmailSettings:AdminEmail"];
+            if (!string.IsNullOrEmpty(adminEmail))
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                await _emailSender.SendEmailAsync(adminEmail,
+                    $"New Support Ticket #{ticket.TicketNumber}",
+                    EmailTemplates.SupportTicketCreated(ticket.TicketNumber, subject.Trim(), category.ToString()));
+            }
+
             TempData["success"] = "Support ticket created successfully! Ticket #" + ticket.TicketNumber;
             return RedirectToAction(nameof(Details), new { id = ticket.Id });
         }
@@ -103,7 +119,7 @@ namespace LoanApp.Areas.Client.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Reply(int ticketId, string message)
+        public async Task<IActionResult> Reply(int ticketId, string message)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -150,6 +166,16 @@ namespace LoanApp.Areas.Client.Controllers
             ticket.IsReadByUser = true;
             _unitOfWork.SupportTicket.Update(ticket);
             _unitOfWork.Save();
+
+            // Notify admin of new reply
+            var adminEmail = _config["EmailSettings:AdminEmail"];
+            if (!string.IsNullOrEmpty(adminEmail))
+            {
+                var user = await _userManager.FindByIdAsync(userId);
+                await _emailSender.SendEmailAsync(adminEmail,
+                    $"New Reply on Ticket #{ticket.TicketNumber}",
+                    EmailTemplates.SupportTicketReply(user?.FullName ?? "User", ticket.TicketNumber, ticket.Subject, false));
+            }
 
             TempData["success"] = "Reply sent successfully!";
             return RedirectToAction(nameof(Details), new { id = ticketId });

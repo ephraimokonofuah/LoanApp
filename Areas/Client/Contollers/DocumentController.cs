@@ -1,8 +1,10 @@
 using LoanApp.Models;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace LoanApp.Areas.Client.Controllers
 {
@@ -14,13 +16,17 @@ namespace LoanApp.Areas.Client.Controllers
         private readonly IWebHostEnvironment _hostEnvironment;
         private readonly ILogger<DocumentController> _logger;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _config;
 
-        public DocumentController(IUnitOfWork unitOfWork, IWebHostEnvironment hostEnvironment, ILogger<DocumentController> logger, UserManager<ApplicationUser> userManager)
+        public DocumentController(IUnitOfWork unitOfWork, IWebHostEnvironment hostEnvironment, ILogger<DocumentController> logger, UserManager<ApplicationUser> userManager, IEmailSender emailSender, IConfiguration config)
         {
             _unitOfWork = unitOfWork;
             _hostEnvironment = hostEnvironment;
             _logger = logger;
             _userManager = userManager;
+            _emailSender = emailSender;
+            _config = config;
         }
 
         private async Task<bool> UserOwnsApplication(int loanApplicationId)
@@ -105,6 +111,16 @@ namespace LoanApp.Areas.Client.Controllers
 
                 _unitOfWork.Document.Add(document);
                 _unitOfWork.Save();
+
+                // Notify admin of new document upload
+                var adminEmail = _config["EmailSettings:AdminEmail"];
+                if (!string.IsNullOrEmpty(adminEmail))
+                {
+                    var user = await _userManager.GetUserAsync(User);
+                    await _emailSender.SendEmailAsync(adminEmail,
+                        "New Document Uploaded",
+                        EmailTemplates.DocumentUploaded(user?.FullName ?? "User", loanApplicationId, documentType));
+                }
 
                 return Json(new { success = true, message = "Document uploaded successfully", documentId = document.Id });
             }

@@ -1,7 +1,9 @@
 using LoanApp.Models;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LoanApp.Areas.Admin.Controllers
@@ -11,10 +13,14 @@ namespace LoanApp.Areas.Admin.Controllers
     public class RepaymentController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IEmailSender _emailSender;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public RepaymentController(IUnitOfWork unitOfWork)
+        public RepaymentController(IUnitOfWork unitOfWork, IEmailSender emailSender, UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
+            _emailSender = emailSender;
+            _userManager = userManager;
         }
 
         public IActionResult Index()
@@ -59,7 +65,7 @@ namespace LoanApp.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SendPaymentDetails(int id, string paymentDetails, int? walletId)
+        public async Task<IActionResult> SendPaymentDetails(int id, string paymentDetails, int? walletId)
         {
             var repayment = _unitOfWork.Repayment.Get(
                 r => r.Id == id, tracked: true);
@@ -104,13 +110,22 @@ namespace LoanApp.Areas.Admin.Controllers
             _unitOfWork.Repayment.Update(repayment);
             _unitOfWork.Save();
 
+            // Send email notification to user
+            var user = await _userManager.FindByIdAsync(repayment.UserId);
+            if (user != null)
+            {
+                await _emailSender.SendEmailAsync(user.Email!, "Payment Details Are Ready",
+                    EmailTemplates.PaymentDetailsSent(user.FullName ?? "User", repayment.InstallmentNumber,
+                        repayment.Amount, repayment.PaymentMethodRequested.ToString()));
+            }
+
             TempData["success"] = "Payment details sent to the user successfully.";
             return RedirectToAction("Details", new { id });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ConfirmPayment(int id)
+        public async Task<IActionResult> ConfirmPayment(int id)
         {
             var repayment = _unitOfWork.Repayment.Get(
                 r => r.Id == id, tracked: true);
@@ -130,6 +145,14 @@ namespace LoanApp.Areas.Admin.Controllers
 
             _unitOfWork.Repayment.Update(repayment);
             _unitOfWork.Save();
+
+            // Send email notification to user
+            var paidUser = await _userManager.FindByIdAsync(repayment.UserId);
+            if (paidUser != null)
+            {
+                await _emailSender.SendEmailAsync(paidUser.Email!, "Payment Confirmed",
+                    EmailTemplates.PaymentConfirmed(paidUser.FullName ?? "User", repayment.InstallmentNumber, repayment.Amount));
+            }
 
             TempData["success"] = "Payment confirmed successfully.";
             return RedirectToAction("Details", new { id });

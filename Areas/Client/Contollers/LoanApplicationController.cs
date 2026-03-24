@@ -1,8 +1,10 @@
 using LoanApp.Models;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,11 +16,15 @@ namespace LoanApp.Areas.Client.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _config;
 
-        public LoanApplicationController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public LoanApplicationController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IEmailSender emailSender, IConfiguration config)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _emailSender = emailSender;
+            _config = config;
         }
 
         public async Task<IActionResult> Index()
@@ -102,6 +108,16 @@ namespace LoanApp.Areas.Client.Controllers
 
             _unitOfWork.LoanApplication.Add(model);
             _unitOfWork.Save();
+
+            // Notify admin of new loan application
+            var adminEmail = _config["EmailSettings:AdminEmail"];
+            if (!string.IsNullOrEmpty(adminEmail))
+            {
+                await _emailSender.SendEmailAsync(adminEmail,
+                    "New Loan Application Submitted",
+                    EmailTemplates.LoanApplicationSubmitted(user.FullName ?? user.Email, model.Id, model.LoanAmount, model.LoanPurpose ?? "N/A", model.DurationMonths));
+            }
+
             return RedirectToAction("Index");
         }
 

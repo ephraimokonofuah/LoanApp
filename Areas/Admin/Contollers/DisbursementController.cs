@@ -3,6 +3,8 @@ using LoanApp.Models.ViewModels;
 using LoanApp.Repository.IRepository;
 using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LoanApp.Areas.Admin.Controllers
@@ -12,10 +14,14 @@ namespace LoanApp.Areas.Admin.Controllers
     public class DisbursementController : Controller
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IEmailSender _emailSender;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public DisbursementController(IUnitOfWork unitOfWork)
+        public DisbursementController(IUnitOfWork unitOfWork, IEmailSender emailSender, UserManager<ApplicationUser> userManager)
         {
             _unitOfWork = unitOfWork;
+            _emailSender = emailSender;
+            _userManager = userManager;
         }
 
         public IActionResult Index()
@@ -60,7 +66,7 @@ namespace LoanApp.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UpdateStatus(DisbursementUpdateViewModel vm)
+        public async Task<IActionResult> UpdateStatus(DisbursementUpdateViewModel vm)
         {
             var disbursement = _unitOfWork.LoanDisbursement
                 .Get(d => d.Id == vm.DisbursementId, tracked: true);
@@ -88,6 +94,18 @@ namespace LoanApp.Areas.Admin.Controllers
             }
 
             _unitOfWork.Save();
+
+            // Send email notification to user
+            var user = await _userManager.FindByIdAsync(disbursement.UserId);
+            if (user != null)
+            {
+                var statusText = vm.NewStatus.ToString();
+                var amount = disbursement.PaidAmount > 0 ? disbursement.PaidAmount : disbursement.ApprovedAmount;
+                await _emailSender.SendEmailAsync(user.Email,
+                    $"Disbursement Status Update - {statusText}",
+                    EmailTemplates.DisbursementStatusUpdate(user.FullName, statusText, disbursement.Id, amount));
+            }
+
             TempData["success"] = $"Disbursement status updated to {vm.NewStatus}.";
             return RedirectToAction("Details", new { id = vm.DisbursementId });
         }

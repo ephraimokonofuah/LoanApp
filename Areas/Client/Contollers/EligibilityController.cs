@@ -4,6 +4,7 @@ using LoanApp.Repository.IRepository;
 using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LoanApp.Areas.Client.Controllers
@@ -14,11 +15,15 @@ namespace LoanApp.Areas.Client.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _config;
 
-        public EligibilityController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public EligibilityController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IEmailSender emailSender, IConfiguration config)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _emailSender = emailSender;
+            _config = config;
         }
 
         public async Task<IActionResult> Index()
@@ -92,6 +97,15 @@ namespace LoanApp.Areas.Client.Controllers
 
             _unitOfWork.EligibilityCheck.Add(eligibilityCheck);
             _unitOfWork.Save();
+
+            // Notify admin of new eligibility check
+            var adminEmail = _config["EmailSettings:AdminEmail"];
+            if (!string.IsNullOrEmpty(adminEmail))
+            {
+                await _emailSender.SendEmailAsync(adminEmail,
+                    "New Eligibility Check Submitted",
+                    EmailTemplates.EligibilityCheckSubmitted(user.FullName ?? user.Email, eligibilityCheck.Id, model.DesiredLoanAmount, loanType.Name));
+            }
 
             return RedirectToAction("Result", new { id = eligibilityCheck.Id });
         }

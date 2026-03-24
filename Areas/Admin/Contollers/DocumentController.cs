@@ -1,7 +1,9 @@
 using LoanApp.Models;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LoanApp.Areas.Admin.Controllers
@@ -13,12 +15,14 @@ namespace LoanApp.Areas.Admin.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _hostEnvironment;
+        private readonly IEmailSender _emailSender;
 
-        public DocumentController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IWebHostEnvironment hostEnvironment)
+        public DocumentController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IWebHostEnvironment hostEnvironment, IEmailSender emailSender)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
             _hostEnvironment = hostEnvironment;
+            _emailSender = emailSender;
         }
 
         [HttpGet]
@@ -43,6 +47,18 @@ namespace LoanApp.Areas.Admin.Controllers
             _unitOfWork.Document.Update(document);
             _unitOfWork.Save();
 
+            // Send email notification to user
+            var loanApp = _unitOfWork.LoanApplication.Get(la => la.Id == document.LoanApplicationId);
+            if (loanApp != null)
+            {
+                var user = await _userManager.FindByIdAsync(loanApp.UserId);
+                if (user?.Email != null)
+                {
+                    await _emailSender.SendEmailAsync(user.Email, "Document Approved",
+                        EmailTemplates.DocumentApproved(user.FullName ?? "User", document.LoanApplicationId, document.DocumentType ?? "Document", reviewNotes));
+                }
+            }
+
             return RedirectToAction("Details", "LoanApplication", new { area = "Admin", id = document.LoanApplicationId });
         }
 
@@ -60,6 +76,18 @@ namespace LoanApp.Areas.Admin.Controllers
             document.ReviewNotes = reviewNotes;
             _unitOfWork.Document.Update(document);
             _unitOfWork.Save();
+
+            // Send email notification to user
+            var loanApp = _unitOfWork.LoanApplication.Get(la => la.Id == document.LoanApplicationId);
+            if (loanApp != null)
+            {
+                var user = await _userManager.FindByIdAsync(loanApp.UserId);
+                if (user?.Email != null)
+                {
+                    await _emailSender.SendEmailAsync(user.Email, "Document Rejected",
+                        EmailTemplates.DocumentRejected(user.FullName ?? "User", document.LoanApplicationId, document.DocumentType ?? "Document", reviewNotes));
+                }
+            }
 
             return RedirectToAction("Details", "LoanApplication", new { area = "Admin", id = document.LoanApplicationId });
         }

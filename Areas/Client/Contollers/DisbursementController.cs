@@ -1,8 +1,10 @@
 using LoanApp.Models;
 using LoanApp.Models.ViewModels;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace LoanApp.Areas.Client.Controllers
@@ -13,11 +15,15 @@ namespace LoanApp.Areas.Client.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEmailSender _emailSender;
+        private readonly IConfiguration _config;
 
-        public DisbursementController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager)
+        public DisbursementController(IUnitOfWork unitOfWork, UserManager<ApplicationUser> userManager, IEmailSender emailSender, IConfiguration config)
         {
             _unitOfWork = unitOfWork;
             _userManager = userManager;
+            _emailSender = emailSender;
+            _config = config;
         }
 
         public async Task<IActionResult> Index()
@@ -90,6 +96,16 @@ namespace LoanApp.Areas.Client.Controllers
             disbursement.IsReadByAdmin = false;
 
             _unitOfWork.Save();
+
+            // Notify admin of bank details submission
+            var adminEmail = _config["EmailSettings:AdminEmail"];
+            if (!string.IsNullOrEmpty(adminEmail))
+            {
+                await _emailSender.SendEmailAsync(adminEmail,
+                    "Bank Details Submitted for Disbursement",
+                    EmailTemplates.DisbursementBankDetailsSubmitted(user.FullName ?? user.Email, disbursement.Id, disbursement.ApprovedAmount));
+            }
+
             TempData["success"] = "Bank details submitted successfully. Your disbursement is now under review.";
             return RedirectToAction("Details", new { id = disbursement.Id });
         }

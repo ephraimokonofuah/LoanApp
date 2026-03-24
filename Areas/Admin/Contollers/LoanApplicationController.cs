@@ -1,6 +1,7 @@
 using LoanApp.Data;
 using LoanApp.Models;
 using LoanApp.Repository.IRepository;
+using LoanApp.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
@@ -74,7 +75,7 @@ namespace LoanApp.Areas.Admin.Controllers
             if (user != null)
             {
                 await _emailSender.SendEmailAsync(user.Email!, "Documents Requested for Loan Application",
-                    $"Please upload the required documents for your loan application (ID: {loanApplication.Id}). Note: {documentRequestNote ?? "Please upload all supporting documents."}");
+                    EmailTemplates.DocumentsRequested(user.FullName ?? "User", loanApplication.Id, documentRequestNote));
             }
             return RedirectToAction("Details", new { id });
         }
@@ -119,7 +120,8 @@ namespace LoanApp.Areas.Admin.Controllers
             var user = await _userManager.FindByIdAsync(loanApplication.UserId);
             if (user != null)
             {
-                await _emailSender.SendEmailAsync(user.Email!, "Loan Application Approved", $"Your loan application (ID: {loanApplication.Id}) has been approved. Please log in to set up your disbursement details.");
+                await _emailSender.SendEmailAsync(user.Email!, "Loan Application Approved",
+                    EmailTemplates.LoanApplicationApproved(user.FullName ?? "User", loanApplication.Id, loanApplication.LoanAmount));
             }
             return RedirectToAction("Index");
         }
@@ -138,7 +140,8 @@ namespace LoanApp.Areas.Admin.Controllers
             var user = await _userManager.FindByIdAsync(loanApplication.UserId);
             if (user != null)
             {
-                await _emailSender.SendEmailAsync(user.Email!, "Loan Application Rejected", $"Your loan application (ID: {loanApplication.Id}) has been rejected.");
+                await _emailSender.SendEmailAsync(user.Email!, "Loan Application Update",
+                    EmailTemplates.LoanApplicationRejected(user.FullName ?? "User", loanApplication.Id));
             }
             return RedirectToAction("Index");
         }

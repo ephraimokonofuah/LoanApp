@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "17Kr3L+C7mO8LUXBjSXqeFStW/69/98Ny+DHpfZZtcA=",
+  "Hash": "5pLT6uqJohf+Zk1vVGv7l/smRfmZKOTKe6sIEa8XOLo=",
   "Source": "LoanApp",
   "BasePath": "_content/LoanApp",
   "Mode": "Default",
@@ -2468,6 +2468,25 @@
       "OriginalItemSpec": "wwwroot/uploads/documents/018f26e2-1a62-4be8-8b3b-9049e889656a_fake.jpg"
     },
     {
+      "Identity": "/Users/ephraim/Projects/LoanApp/wwwroot/uploads/documents/1a8cc0a1-f346-4aa5-b3cc-d2265a0401d2_logo.png",
+      "SourceId": "LoanApp",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/ephraim/Projects/LoanApp/wwwroot/",
+      "BasePath": "_content/LoanApp",
+      "RelativePath": "uploads/documents/1a8cc0a1-f346-4aa5-b3cc-d2265a0401d2_logo.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/documents/1a8cc0a1-f346-4aa5-b3cc-d2265a0401d2_logo.png"
+    },
+    {
       "Identity": "/Users/ephraim/Projects/LoanApp/wwwroot/uploads/documents/4bfec1ba-9ae8-4d94-af72-aad688242498_logo.png",
       "SourceId": "LoanApp",
       "SourceType": "Discovered",
@@ -2487,6 +2506,25 @@
       "OriginalItemSpec": "wwwroot/uploads/documents/4bfec1ba-9ae8-4d94-af72-aad688242498_logo.png"
     },
     {
+      "Identity": "/Users/ephraim/Projects/LoanApp/wwwroot/uploads/documents/9f73e7b3-c691-47f7-a1fa-d6aee3ba9797_post.png",
+      "SourceId": "LoanApp",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/ephraim/Projects/LoanApp/wwwroot/",
+      "BasePath": "_content/LoanApp",
+      "RelativePath": "uploads/documents/9f73e7b3-c691-47f7-a1fa-d6aee3ba9797_post.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/documents/9f73e7b3-c691-47f7-a1fa-d6aee3ba9797_post.png"
+    },
+    {
       "Identity": "/Users/ephraim/Projects/LoanApp/wwwroot/uploads/documents/aaff0781-c346-4409-b821-a048186319dc_logo.png",
       "SourceId": "LoanApp",
       "SourceType": "Discovered",
@@ -2504,6 +2542,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/uploads/documents/aaff0781-c346-4409-b821-a048186319dc_logo.png"
+    },
+    {
+      "Identity": "/Users/ephraim/Projects/LoanApp/wwwroot/uploads/documents/c5331ad8-a065-4ff3-a865-0243a95138bc_logo.png",
+      "SourceId": "LoanApp",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/ephraim/Projects/LoanApp/wwwroot/",
+      "BasePath": "_content/LoanApp",
+      "RelativePath": "uploads/documents/c5331ad8-a065-4ff3-a865-0243a95138bc_logo.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/documents/c5331ad8-a065-4ff3-a865-0243a95138bc_logo.png"
     },
     {
       "Identity": "/Users/ephraim/Projects/LoanApp/wwwroot/uploads/documents/da5e8d86-bfb3-4e2e-afa7-df3292506982_logo.png",
