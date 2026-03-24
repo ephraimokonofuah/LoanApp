@@ -131,6 +131,17 @@ namespace LoanApp.Areas.Identity.Pages.Account
                     _logger.LogInformation("User logged in.");
                     return LocalRedirect(returnUrl);
                 }
+                if (result.IsNotAllowed)
+                {
+                    if (user != null && !await _userManager.IsEmailConfirmedAsync(user))
+                    {
+                        ModelState.AddModelError(string.Empty, "You must confirm your email before you can log in. Please check your inbox for the confirmation link.");
+                        ViewData["EmailNotConfirmed"] = true;
+                        return Page();
+                    }
+                    ModelState.AddModelError(string.Empty, "Your account is not allowed to sign in.");
+                    return Page();
+                }
                 if (result.RequiresTwoFactor)
                 {
                     return RedirectToPage("./LoginWith2fa", new { ReturnUrl = returnUrl, RememberMe = Input.RememberMe });

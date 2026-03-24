@@ -105,14 +105,18 @@ namespace LoanApp.Areas.Client.Controllers
             _unitOfWork.Repayment.Update(repayment);
             _unitOfWork.Save();
 
-            // Notify admin about payment request
-            var adminEmail = _config["EmailSettings:AdminEmail"];
+            // Notify all admins about payment request
             var currentUser = await _userManager.GetUserAsync(User);
-            if (!string.IsNullOrEmpty(adminEmail) && currentUser != null)
+            if (currentUser != null)
             {
-                await _emailSender.SendEmailAsync(adminEmail, "New Payment Request",
-                    EmailTemplates.PaymentRequested(currentUser.FullName ?? "User", repayment.InstallmentNumber,
-                        repayment.Amount, paymentMethod.ToString()));
+                var admins = await _userManager.GetUsersInRoleAsync("Admin");
+                var globalAdmins = await _userManager.GetUsersInRoleAsync("GlobalAdmin");
+                var emailBody = EmailTemplates.PaymentRequested(currentUser.FullName ?? "User", repayment.InstallmentNumber,
+                    repayment.Amount, paymentMethod.ToString());
+                foreach (var admin in admins.Concat(globalAdmins).Where(a => !string.IsNullOrEmpty(a.Email)).DistinctBy(a => a.Email))
+                {
+                    await _emailSender.SendEmailAsync(admin.Email!, "New Payment Request", emailBody);
+                }
             }
 
             TempData["success"] = $"Payment details for {paymentMethod} have been requested. You will be notified once the admin provides the details.";
@@ -142,14 +146,18 @@ namespace LoanApp.Areas.Client.Controllers
             _unitOfWork.Repayment.Update(repayment);
             _unitOfWork.Save();
 
-            // Notify admin about transaction reference
-            var txAdminEmail = _config["EmailSettings:AdminEmail"];
+            // Notify all admins about transaction reference
             var txUser = await _userManager.GetUserAsync(User);
-            if (!string.IsNullOrEmpty(txAdminEmail) && txUser != null)
+            if (txUser != null)
             {
-                await _emailSender.SendEmailAsync(txAdminEmail, "Transaction Reference Submitted",
-                    EmailTemplates.TransactionReferenceSubmitted(txUser.FullName ?? "User",
-                        repayment.InstallmentNumber, repayment.Amount, transactionReference));
+                var admins = await _userManager.GetUsersInRoleAsync("Admin");
+                var globalAdmins = await _userManager.GetUsersInRoleAsync("GlobalAdmin");
+                var emailBody = EmailTemplates.TransactionReferenceSubmitted(txUser.FullName ?? "User",
+                    repayment.InstallmentNumber, repayment.Amount, transactionReference);
+                foreach (var admin in admins.Concat(globalAdmins).Where(a => !string.IsNullOrEmpty(a.Email)).DistinctBy(a => a.Email))
+                {
+                    await _emailSender.SendEmailAsync(admin.Email!, "Transaction Reference Submitted", emailBody);
+                }
             }
 
             TempData["success"] = "Transaction reference submitted. Admin will verify and confirm your payment.";

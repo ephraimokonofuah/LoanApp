@@ -81,14 +81,13 @@ namespace LoanApp.Areas.Client.Controllers
             _unitOfWork.TicketMessage.Add(ticketMessage);
             _unitOfWork.Save();
 
-            // Notify admin of new support ticket
-            var adminEmail = _config["EmailSettings:AdminEmail"];
-            if (!string.IsNullOrEmpty(adminEmail))
+            // Notify all admins of new support ticket
+            var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            var globalAdmins = await _userManager.GetUsersInRoleAsync("GlobalAdmin");
+            var emailBody = EmailTemplates.SupportTicketCreated(ticket.TicketNumber, subject.Trim(), category.ToString());
+            foreach (var admin in admins.Concat(globalAdmins).Where(a => !string.IsNullOrEmpty(a.Email)).DistinctBy(a => a.Email))
             {
-                var user = await _userManager.FindByIdAsync(userId);
-                await _emailSender.SendEmailAsync(adminEmail,
-                    $"New Support Ticket #{ticket.TicketNumber}",
-                    EmailTemplates.SupportTicketCreated(ticket.TicketNumber, subject.Trim(), category.ToString()));
+                await _emailSender.SendEmailAsync(admin.Email!, $"New Support Ticket #{ticket.TicketNumber}", emailBody);
             }
 
             TempData["success"] = "Support ticket created successfully! Ticket #" + ticket.TicketNumber;
@@ -167,14 +166,14 @@ namespace LoanApp.Areas.Client.Controllers
             _unitOfWork.SupportTicket.Update(ticket);
             _unitOfWork.Save();
 
-            // Notify admin of new reply
-            var adminEmail = _config["EmailSettings:AdminEmail"];
-            if (!string.IsNullOrEmpty(adminEmail))
+            // Notify all admins of new reply
+            var replyUser = await _userManager.FindByIdAsync(userId);
+            var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            var globalAdmins = await _userManager.GetUsersInRoleAsync("GlobalAdmin");
+            var emailBody = EmailTemplates.SupportTicketReply(replyUser?.FullName ?? "User", ticket.TicketNumber, ticket.Subject, false);
+            foreach (var admin in admins.Concat(globalAdmins).Where(a => !string.IsNullOrEmpty(a.Email)).DistinctBy(a => a.Email))
             {
-                var user = await _userManager.FindByIdAsync(userId);
-                await _emailSender.SendEmailAsync(adminEmail,
-                    $"New Reply on Ticket #{ticket.TicketNumber}",
-                    EmailTemplates.SupportTicketReply(user?.FullName ?? "User", ticket.TicketNumber, ticket.Subject, false));
+                await _emailSender.SendEmailAsync(admin.Email!, $"New Reply on Ticket #{ticket.TicketNumber}", emailBody);
             }
 
             TempData["success"] = "Reply sent successfully!";

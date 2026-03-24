@@ -109,13 +109,13 @@ namespace LoanApp.Areas.Client.Controllers
             _unitOfWork.LoanApplication.Add(model);
             _unitOfWork.Save();
 
-            // Notify admin of new loan application
-            var adminEmail = _config["EmailSettings:AdminEmail"];
-            if (!string.IsNullOrEmpty(adminEmail))
+            // Notify all admins of new loan application
+            var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            var globalAdmins = await _userManager.GetUsersInRoleAsync("GlobalAdmin");
+            var emailBody = EmailTemplates.LoanApplicationSubmitted(user.FullName ?? user.Email, model.Id, model.LoanAmount, model.LoanPurpose ?? "N/A", model.DurationMonths);
+            foreach (var admin in admins.Concat(globalAdmins).Where(a => !string.IsNullOrEmpty(a.Email)).DistinctBy(a => a.Email))
             {
-                await _emailSender.SendEmailAsync(adminEmail,
-                    "New Loan Application Submitted",
-                    EmailTemplates.LoanApplicationSubmitted(user.FullName ?? user.Email, model.Id, model.LoanAmount, model.LoanPurpose ?? "N/A", model.DurationMonths));
+                await _emailSender.SendEmailAsync(admin.Email!, "New Loan Application Submitted", emailBody);
             }
 
             return RedirectToAction("Index");

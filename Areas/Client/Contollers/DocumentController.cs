@@ -112,14 +112,14 @@ namespace LoanApp.Areas.Client.Controllers
                 _unitOfWork.Document.Add(document);
                 _unitOfWork.Save();
 
-                // Notify admin of new document upload
-                var adminEmail = _config["EmailSettings:AdminEmail"];
-                if (!string.IsNullOrEmpty(adminEmail))
+                // Notify all admins of new document upload
+                var user = await _userManager.GetUserAsync(User);
+                var admins = await _userManager.GetUsersInRoleAsync("Admin");
+                var globalAdmins = await _userManager.GetUsersInRoleAsync("GlobalAdmin");
+                var emailBody = EmailTemplates.DocumentUploaded(user?.FullName ?? "User", loanApplicationId, documentType);
+                foreach (var admin in admins.Concat(globalAdmins).Where(a => !string.IsNullOrEmpty(a.Email)).DistinctBy(a => a.Email))
                 {
-                    var user = await _userManager.GetUserAsync(User);
-                    await _emailSender.SendEmailAsync(adminEmail,
-                        "New Document Uploaded",
-                        EmailTemplates.DocumentUploaded(user?.FullName ?? "User", loanApplicationId, documentType));
+                    await _emailSender.SendEmailAsync(admin.Email!, "New Document Uploaded", emailBody);
                 }
 
                 return Json(new { success = true, message = "Document uploaded successfully", documentId = document.Id });

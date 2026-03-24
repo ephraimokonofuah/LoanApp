@@ -507,5 +507,49 @@ namespace LoanApp.Utility
                 <p style=""font-size:15px; color:#495057; line-height:1.6;"">Get started by checking your eligibility today!</p>",
                 "Need help? Our support team is here for you.");
         }
+
+        // ==========================================
+        // EMAIL CONFIRMATION
+        // ==========================================
+
+        public static string EmailConfirmation(string userName, string confirmationLink)
+        {
+            return BaseLayout("Confirm Your Email &#9989;",
+                Icon("&#9993;", "#cfe2ff"),
+                $@"<p style=""font-size:15px; color:#495057; line-height:1.6;"">Hello <strong>{userName}</strong>,</p>
+                <p style=""font-size:15px; color:#495057; line-height:1.6;"">Thank you for registering with <strong>LoanApp</strong>! To complete your registration and activate your account, please confirm your email address by clicking the button below.</p>
+                <div style=""text-align:center; margin:28px 0;"">
+                    <a href=""{confirmationLink}"" style=""display:inline-block; padding:14px 36px; background:linear-gradient(135deg,#0d6efd 0%,#0a58ca 100%); color:#ffffff; text-decoration:none; border-radius:8px; font-size:16px; font-weight:600; letter-spacing:0.3px;"">&#9989; Confirm Email Address</a>
+                </div>
+                <p style=""font-size:13px; color:#6c757d; line-height:1.6;"">If the button above doesn't work, copy and paste this link into your browser:</p>
+                <p style=""font-size:13px; color:#0d6efd; word-break:break-all; line-height:1.6;"">{confirmationLink}</p>",
+                "This link will expire after 24 hours. If you did not create an account, please ignore this email.");
+        }
+
+        // ==========================================
+        // PASSWORD RESET
+        // ==========================================
+
+        public static string PasswordReset(string userName, string resetLink)
+        {
+            return BaseLayout("Password Reset Request &#128274;",
+                Icon("&#128272;", "#fff3cd"),
+                $@"<p style=""font-size:15px; color:#495057; line-height:1.6;"">Hello <strong>{userName}</strong>,</p>
+                <p style=""font-size:15px; color:#495057; line-height:1.6;"">We received a request to reset the password for your <strong>LoanApp</strong> account. Click the button below to set a new password.</p>
+                <div style=""text-align:center; margin:28px 0;"">
+                    <a href=""{resetLink}"" style=""display:inline-block; padding:14px 36px; background:linear-gradient(135deg,#fd7e14 0%,#e85d04 100%); color:#ffffff; text-decoration:none; border-radius:8px; font-size:16px; font-weight:600; letter-spacing:0.3px;"">&#128274; Reset My Password</a>
+                </div>
+                <p style=""font-size:13px; color:#6c757d; line-height:1.6;"">If the button above doesn't work, copy and paste this link into your browser:</p>
+                <p style=""font-size:13px; color:#0d6efd; word-break:break-all; line-height:1.6;"">{resetLink}</p>
+                <div style=""background-color:#f8f9fa; border-radius:8px; padding:16px; margin:20px 0 0;"">
+                    <p style=""margin:0 0 8px; font-size:14px; color:#495057; font-weight:600;"">&#128737; Security Tips:</p>
+                    <ul style=""margin:0; padding-left:20px; font-size:13px; color:#6c757d; line-height:1.8;"">
+                        <li>Choose a strong password with at least 6 characters</li>
+                        <li>Use a mix of letters, numbers, and special characters</li>
+                        <li>Never share your password with anyone</li>
+                    </ul>
+                </div>",
+                "&#9888;&#65039; If you did not request a password reset, please ignore this email. Your password will remain unchanged. This link expires in 24 hours.");
+        }
     }
 }

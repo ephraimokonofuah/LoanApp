@@ -97,13 +97,13 @@ namespace LoanApp.Areas.Client.Controllers
 
             _unitOfWork.Save();
 
-            // Notify admin of bank details submission
-            var adminEmail = _config["EmailSettings:AdminEmail"];
-            if (!string.IsNullOrEmpty(adminEmail))
+            // Notify all admins of bank details submission
+            var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            var globalAdmins = await _userManager.GetUsersInRoleAsync("GlobalAdmin");
+            var emailBody = EmailTemplates.DisbursementBankDetailsSubmitted(user.FullName ?? user.Email, disbursement.Id, disbursement.ApprovedAmount);
+            foreach (var admin in admins.Concat(globalAdmins).Where(a => !string.IsNullOrEmpty(a.Email)).DistinctBy(a => a.Email))
             {
-                await _emailSender.SendEmailAsync(adminEmail,
-                    "Bank Details Submitted for Disbursement",
-                    EmailTemplates.DisbursementBankDetailsSubmitted(user.FullName ?? user.Email, disbursement.Id, disbursement.ApprovedAmount));
+                await _emailSender.SendEmailAsync(admin.Email!, "Bank Details Submitted for Disbursement", emailBody);
             }
 
             TempData["success"] = "Bank details submitted successfully. Your disbursement is now under review.";

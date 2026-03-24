@@ -98,13 +98,13 @@ namespace LoanApp.Areas.Client.Controllers
             _unitOfWork.EligibilityCheck.Add(eligibilityCheck);
             _unitOfWork.Save();
 
-            // Notify admin of new eligibility check
-            var adminEmail = _config["EmailSettings:AdminEmail"];
-            if (!string.IsNullOrEmpty(adminEmail))
+            // Notify all admins of new eligibility check
+            var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            var globalAdmins = await _userManager.GetUsersInRoleAsync("GlobalAdmin");
+            var emailBody = EmailTemplates.EligibilityCheckSubmitted(user.FullName ?? user.Email, eligibilityCheck.Id, model.DesiredLoanAmount, loanType.Name);
+            foreach (var admin in admins.Concat(globalAdmins).Where(a => !string.IsNullOrEmpty(a.Email)).DistinctBy(a => a.Email))
             {
-                await _emailSender.SendEmailAsync(adminEmail,
-                    "New Eligibility Check Submitted",
-                    EmailTemplates.EligibilityCheckSubmitted(user.FullName ?? user.Email, eligibilityCheck.Id, model.DesiredLoanAmount, loanType.Name));
+                await _emailSender.SendEmailAsync(admin.Email!, "New Eligibility Check Submitted", emailBody);
             }
 
             return RedirectToAction("Result", new { id = eligibilityCheck.Id });
