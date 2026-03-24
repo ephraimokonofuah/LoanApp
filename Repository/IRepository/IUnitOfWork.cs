@@ -13,6 +13,7 @@ namespace LoanApp.Repository.IRepository
         ILoanRepository Loan { get; }
         IRepaymentRepository Repayment { get; }
         ISiteSettingsRepository SiteSettings { get; }
+        ICryptoWalletRepository CryptoWallet { get; }
         void Save();
     }
 }

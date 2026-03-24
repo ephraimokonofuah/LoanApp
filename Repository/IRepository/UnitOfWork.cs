@@ -16,6 +16,7 @@ namespace LoanApp.Repository.IRepository
         public ILoanRepository Loan { get; private set; }
         public IRepaymentRepository Repayment { get; private set; }
         public ISiteSettingsRepository SiteSettings { get; private set; }
+        public ICryptoWalletRepository CryptoWallet { get; private set; }
 
         public UnitOfWork(ApplicationDbContext db)
         {
@@ -31,6 +32,7 @@ namespace LoanApp.Repository.IRepository
             Loan = new LoanRepository(_db);
             Repayment = new RepaymentRepository(_db);
             SiteSettings = new SiteSettingsRepository(_db);
+            CryptoWallet = new CryptoWalletRepository(_db);
         }
 
 

@@ -24,6 +24,7 @@ namespace LoanApp.Data
         public DbSet<SupportTicket> SupportTickets { get; set; }
         public DbSet<TicketMessage> TicketMessages { get; set; }
         public DbSet<SiteSettings> SiteSettings { get; set; }
+        public DbSet<CryptoWallet> CryptoWallets { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

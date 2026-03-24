@@ -1,0 +1,72 @@
+@model LoanApp.Models.CryptoWallet
+
+@{
+    ViewData["Title"] = "Add Crypto Wallet";
+}
+
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold mb-1">
+                <i class="bi bi-plus-circle text-primary me-2"></i>Add Crypto Wallet
+            </h3>
+            <p class="text-muted mb-0">Add a new USDT or Bitcoin wallet for payment collection.</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Back to Wallets
+        </a>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="WalletType" class="form-label fw-bold">Wallet Type</label>
+                            <select asp-for="WalletType" class="form-select">
+                                <option value="">-- Select Type --</option>
+                                <option value="@LoanApp.Models.PaymentMethodType.USDT">USDT (Tether)</option>
+                                <option value="@LoanApp.Models.PaymentMethodType.Bitcoin">Bitcoin</option>
+                            </select>
+                            <span asp-validation-for="WalletType" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="WalletAddress" class="form-label fw-bold">Wallet Address</label>
+                            <input asp-for="WalletAddress" class="form-control" placeholder="e.g., TXkY7...abc123" />
+                            <span asp-validation-for="WalletAddress" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Network" class="form-label fw-bold">Network <small class="text-muted">(optional)</small></label>
+                            <input asp-for="Network" class="form-control" placeholder="e.g., TRC-20, ERC-20, BTC Mainnet" />
+                            <span asp-validation-for="Network" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Label" class="form-label fw-bold">Label / Name <small class="text-muted">(optional)</small></label>
+                            <input asp-for="Label" class="form-control" placeholder="e.g., Primary USDT Wallet" />
+                            <span asp-validation-for="Label" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-check form-switch mb-4">
+                            <input asp-for="IsActive" class="form-check-input" />
+                            <label asp-for="IsActive" class="form-check-label">Active</label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-plus-circle me-1"></i>Add Wallet
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

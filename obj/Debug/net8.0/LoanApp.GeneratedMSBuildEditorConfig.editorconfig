@@ -38,6 +38,18 @@ build_metadata.AdditionalFiles.CssScope =
 build_metadata.AdditionalFiles.TargetPath = QXJlYXMvQWRtaW4vVmlld3MvQmFuay9JbmRleC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
+[/Users/ephraim/Projects/LoanApp/Areas/Admin/Views/CryptoWallet/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXMvQWRtaW4vVmlld3MvQ3J5cHRvV2FsbGV0L0NyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ephraim/Projects/LoanApp/Areas/Admin/Views/CryptoWallet/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXMvQWRtaW4vVmlld3MvQ3J5cHRvV2FsbGV0L0VkaXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/ephraim/Projects/LoanApp/Areas/Admin/Views/CryptoWallet/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = QXJlYXMvQWRtaW4vVmlld3MvQ3J5cHRvV2FsbGV0L0luZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
 [/Users/ephraim/Projects/LoanApp/Areas/Admin/Views/Disbursement/Details.cshtml]
 build_metadata.AdditionalFiles.TargetPath = QXJlYXMvQWRtaW4vVmlld3MvRGlzYnVyc2VtZW50L0RldGFpbHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 

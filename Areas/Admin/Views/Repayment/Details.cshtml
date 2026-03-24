@@ -189,19 +189,93 @@
 
                         <form asp-action="SendPaymentDetails" method="post">
                             <input type="hidden" name="id" value="@Model.Id" />
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">
-                                    <i class="bi @methodInfo.Item1 me-1"></i>@methodInfo.Item2 Payment Details
-                                </label>
-                                <textarea name="paymentDetails" class="form-control" rows="5"
-                                          placeholder="@methodInfo.Item4"
-                                          required></textarea>
-                                <div class="form-text">Enter the payment details that will be shown to the user.</div>
-                            </div>
+
+                            @{
+                                var wallets = ViewBag.CryptoWallets as List<LoanApp.Models.CryptoWallet>;
+                            }
+
+                            @if (wallets != null && wallets.Any())
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="bi bi-wallet2 me-1"></i>Select Wallet
+                                    </label>
+                                    <select name="walletId" class="form-select" id="walletSelect" required>
+                                        <option value="">-- Select a wallet --</option>
+                                        @foreach (var w in wallets)
+                                        {
+                                            var walletLabel = !string.IsNullOrEmpty(w.Label) ? w.Label : $"{w.WalletType} Wallet";
+                                            var networkInfo = !string.IsNullOrEmpty(w.Network) ? $" ({w.Network})" : "";
+                                            <option value="@w.Id"
+                                                    data-address="@w.WalletAddress"
+                                                    data-network="@w.Network"
+                                                    data-label="@w.Label">
+                                                @walletLabel@networkInfo — @w.WalletAddress[..Math.Min(20, w.WalletAddress.Length)]...
+                                            </option>
+                                        }
+                                    </select>
+                                    <div class="form-text">Select the wallet to send to the user.</div>
+                                </div>
+
+                                <!-- Wallet preview -->
+                                <div id="walletPreview" class="card bg-light border-0 mb-3" style="display: none;">
+                                    <div class="card-body py-2">
+                                        <small class="text-muted">Selected Wallet Address:</small>
+                                        <div class="fw-bold text-break" id="walletPreviewAddress"></div>
+                                        <div class="text-muted small" id="walletPreviewNetwork"></div>
+                                    </div>
+                                </div>
+                            }
+                            else if (Model.PaymentMethodRequested == PaymentMethodType.USDT || Model.PaymentMethodRequested == PaymentMethodType.Bitcoin)
+                            {
+                                <div class="alert alert-warning mb-3">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>
+                                    No active @Model.PaymentMethodRequested wallets configured.
+                                    @if (User.IsInRole("GlobalAdmin"))
+                                    {
+                                        <a asp-area="Admin" asp-controller="CryptoWallet" asp-action="Create" class="alert-link">Add one now</a>
+                                    }
+                                    else
+                                    {
+                                        <span>Ask the Global Admin to add wallets.</span>
+                                    }
+                                </div>
+                            }
+
+                            @if (Model.PaymentMethodRequested == PaymentMethodType.BankTransfer)
+                            {
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">
+                                        <i class="bi @methodInfo.Item1 me-1"></i>@methodInfo.Item2 Payment Details
+                                    </label>
+                                    <textarea name="paymentDetails" class="form-control" rows="5"
+                                              placeholder="@methodInfo.Item4"
+                                              required></textarea>
+                                    <div class="form-text">Enter the bank details that will be shown to the user.</div>
+                                </div>
+                            }
                             <button type="submit" class="btn btn-primary w-100">
                                 <i class="bi bi-send me-1"></i>Send Payment Details to User
                             </button>
                         </form>
+
+                        @if (ViewBag.CryptoWallets is List<LoanApp.Models.CryptoWallet> scriptWallets && scriptWallets.Any())
+                        {
+                            <script>
+                                document.getElementById('walletSelect')?.addEventListener('change', function() {
+                                    var selected = this.options[this.selectedIndex];
+                                    var preview = document.getElementById('walletPreview');
+                                    if (this.value) {
+                                        document.getElementById('walletPreviewAddress').textContent = selected.getAttribute('data-address');
+                                        var network = selected.getAttribute('data-network');
+                                        document.getElementById('walletPreviewNetwork').textContent = network ? 'Network: ' + network : '';
+                                        preview.style.display = 'block';
+                                    } else {
+                                        preview.style.display = 'none';
+                                    }
+                                });
+                            </script>
+                        }
                     }
                     else if (Model.Status == RepaymentStatus.DetailsSent)
                     {

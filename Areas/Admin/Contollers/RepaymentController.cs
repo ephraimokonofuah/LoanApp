@@ -44,12 +44,22 @@ namespace LoanApp.Areas.Admin.Controllers
                 _unitOfWork.Save();
             }
 
+            // Load available wallets for the requested payment method
+            if (repayment.Status == RepaymentStatus.PaymentRequested &&
+                (repayment.PaymentMethodRequested == PaymentMethodType.USDT || repayment.PaymentMethodRequested == PaymentMethodType.Bitcoin))
+            {
+                var wallets = _unitOfWork.CryptoWallet
+                    .GetAll(w => w.WalletType == repayment.PaymentMethodRequested && w.IsActive)
+                    .ToList();
+                ViewBag.CryptoWallets = wallets;
+            }
+
             return View(repayment);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult SendPaymentDetails(int id, string paymentDetails)
+        public IActionResult SendPaymentDetails(int id, string paymentDetails, int? walletId)
         {
             var repayment = _unitOfWork.Repayment.Get(
                 r => r.Id == id, tracked: true);
@@ -62,9 +72,26 @@ namespace LoanApp.Areas.Admin.Controllers
                 return RedirectToAction("Details", new { id });
             }
 
+            // If a wallet was selected, auto-build the payment details
+            if (walletId.HasValue && walletId > 0)
+            {
+                var wallet = _unitOfWork.CryptoWallet.Get(w => w.Id == walletId.Value && w.IsActive);
+                if (wallet != null)
+                {
+                    var details = $"{wallet.WalletType} Wallet Address:\n{wallet.WalletAddress}";
+                    if (!string.IsNullOrEmpty(wallet.Network))
+                        details += $"\nNetwork: {wallet.Network}";
+                    if (!string.IsNullOrEmpty(wallet.Label))
+                        details += $"\nLabel: {wallet.Label}";
+                    if (!string.IsNullOrEmpty(paymentDetails))
+                        details += $"\n\nAdditional Notes:\n{paymentDetails}";
+                    paymentDetails = details;
+                }
+            }
+
             if (string.IsNullOrWhiteSpace(paymentDetails))
             {
-                TempData["error"] = "Please provide the payment details.";
+                TempData["error"] = "Please provide the payment details or select a wallet.";
                 return RedirectToAction("Details", new { id });
             }
 

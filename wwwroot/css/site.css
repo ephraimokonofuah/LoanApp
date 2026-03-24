@@ -316,3 +316,96 @@ body.sidebar-collapsed .main-footer.has-sidebar {
   border-left: 3px solid var(--bs-primary);
 }
 }
+
+/* ================================
+   Mobile-Friendly Tables & Layout
+   ================================ */
+
+/* DataTables mobile improvements */
+.dataTables_wrapper .dataTables_filter,
+.dataTables_wrapper .dataTables_length {
+  margin-bottom: 0.75rem;
+}
+
+@media (max-width: 767.98px) {
+  /* Stack DataTables controls */
+  .dataTables_wrapper .dataTables_length,
+  .dataTables_wrapper .dataTables_filter {
+    text-align: left !important;
+    width: 100%;
+  }
+
+  .dataTables_wrapper .dataTables_filter input {
+    width: 100% !important;
+    margin-left: 0 !important;
+  }
+
+  .dataTables_wrapper .dataTables_info,
+  .dataTables_wrapper .dataTables_paginate {
+    text-align: center !important;
+    margin-top: 0.5rem;
+  }
+
+  .dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 0.3rem 0.6rem !important;
+  }
+
+  /* Smaller table text on mobile */
+  .table-responsive table {
+    font-size: 0.85rem;
+  }
+
+  .table-responsive table .btn-sm {
+    padding: 0.2rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  /* Cards: reduce padding on mobile */
+  .card-body {
+    padding: 0.75rem;
+  }
+
+  .card-header {
+    padding: 0.75rem;
+  }
+
+  /* Stats cards: smaller text */
+  .col-6 .card-body h4,
+  .col-6 .card-body h5 {
+    font-size: 1.1rem;
+  }
+
+  /* Page headings */
+  h3.fw-bold {
+    font-size: 1.25rem;
+  }
+
+  /* Container fluid less padding on mobile */
+  .container-fluid {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+
+  /* Timeline mobile fix */
+  .timeline-icon {
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    font-size: 0.8rem;
+  }
+
+  /* Action buttons stack on mobile */
+  .d-flex.justify-content-between.align-items-center {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  /* Hero section mobile */
+  .min-vh-75 {
+    min-height: 50vh;
+  }
+
+  .hero-card {
+    transform: none;
+  }
+}

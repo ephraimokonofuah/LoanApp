@@ -201,6 +201,13 @@
                                asp-area="Admin" asp-controller="Bank" asp-action="Index">
                                 <i class="bi bi-bank2"></i><span>Banks</span>
                             </a>
+                            @if (User.IsInRole("GlobalAdmin"))
+                            {
+                                <a class="sidebar-link @(currentArea == "Admin" && currentController == "CryptoWallet" ? "active" : "")"
+                                   asp-area="Admin" asp-controller="CryptoWallet" asp-action="Index">
+                                    <i class="bi bi-wallet2"></i><span>Crypto Wallets</span>
+                                </a>
+                            }
 
                             <div class="sidebar-section-title">Disbursements</div>
                             <a class="sidebar-link @(currentArea == "Admin" && currentController == "Disbursement" ? "active" : "")"
