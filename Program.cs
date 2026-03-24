@@ -37,11 +37,21 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 var app = builder.Build();
 
-// Seed roles and admin user
+// Apply pending migrations and seed roles/admin user
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
-    LoanApp.Services.DbInitializer.SeedRolesAndAdminAsync(services).GetAwaiter().GetResult();
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        var context = services.GetRequiredService<ApplicationDbContext>();
+        context.Database.Migrate();
+        await LoanApp.Services.DbInitializer.SeedRolesAndAdminAsync(services);
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while migrating or seeding the database.");
+    }
 }
 
 // Pipeline
@@ -71,4 +81,4 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}",
     defaults: new { area = "Client" });
 
-app.Run();
+await app.RunAsync();

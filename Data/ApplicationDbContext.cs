@@ -41,7 +41,7 @@ namespace LoanApp.Data
                     NormalizedEmail = "JOHN@EXAMPLE.COM",
                     Address = "123 Main Street",
                     EmailConfirmed = true,
-                    SecurityStamp = Guid.NewGuid().ToString()
+                    SecurityStamp = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
                 },
 
                 new ApplicationUser
@@ -54,7 +54,7 @@ namespace LoanApp.Data
                     NormalizedEmail = "MARY@EXAMPLE.COM",
                     Address = "45 Manchester Road",
                     EmailConfirmed = true,
-                    SecurityStamp = Guid.NewGuid().ToString()
+                    SecurityStamp = "b2c3d4e5-f6a7-8901-bcde-f12345678901"
                 }
 
             );
