@@ -26,7 +26,7 @@ namespace LoanApp.Areas.Admin.Controllers
         public IActionResult Index()
         {
             var repayments = _unitOfWork.Repayment
-                .GetAll(includeProperties: "Loan,User")
+                .GetAll(includeProperties: "Loan,Loan.LoanApplication,User")
                 .OrderBy(r => r.DueDate)
                 .ToList();
 

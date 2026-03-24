@@ -13,6 +13,31 @@
 
     var totalAmount = Model.Sum(r => r.Amount);
     var collectedAmount = Model.Where(r => r.Status == RepaymentStatus.Paid).Sum(r => r.Amount);
+
+    // Group repayments by Loan (each loan belongs to one user + one application)
+    var loanGroups = Model
+        .GroupBy(r => r.LoanId)
+        .Select(g => new {
+            LoanId = g.Key,
+            User = g.First().User,
+            Loan = g.First().Loan,
+            Repayments = g.OrderBy(r => r.InstallmentNumber).ToList(),
+            TotalAmount = g.Sum(r => r.Amount),
+            PaidAmount = g.Where(r => r.Status == RepaymentStatus.Paid).Sum(r => r.Amount),
+            PaidCount = g.Count(r => r.Status == RepaymentStatus.Paid),
+            TotalCount = g.Count(),
+            HasActionNeeded = g.Any(r => r.Status == RepaymentStatus.PaymentRequested || r.Status == RepaymentStatus.DetailsSent),
+            HasUnread = g.Any(r => !r.IsReadByAdmin),
+            HasMissed = g.Any(r => r.Status == RepaymentStatus.Missed),
+            NextDue = g.Where(r => r.Status != RepaymentStatus.Paid).OrderBy(r => r.DueDate).FirstOrDefault()
+        })
+        .OrderByDescending(g => g.HasActionNeeded)
+        .ThenByDescending(g => g.HasUnread)
+        .ThenByDescending(g => g.HasMissed)
+        .ThenBy(g => g.NextDue?.DueDate ?? DateTime.MaxValue)
+        .ToList();
+
+    var actionNeededLoans = loanGroups.Count(g => g.HasActionNeeded);
 }
 
 <div class="container-fluid mt-4">
@@ -21,6 +46,12 @@
             <h3 class="fw-bold mb-1"><i class="bi bi-calendar2-check text-primary me-2"></i>Repayment Management</h3>
             <p class="text-muted mb-0">Monitor and manage all loan repayments across users.</p>
         </div>
+        @if (actionNeededLoans > 0)
+        {
+            <span class="badge bg-danger fs-6 px-3 py-2">
+                <i class="bi bi-bell-fill me-1"></i>@actionNeededLoans loan(s) need attention
+            </span>
+        }
     </div>
 
     @if (TempData["success"] != null)
@@ -119,104 +150,262 @@
         </div>
     </div>
 
-    <!-- Repayment Table -->
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-white py-3">
-            <h5 class="mb-0 fw-bold"><i class="bi bi-table me-2"></i>All Repayments</h5>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-            <table class="table table-hover align-middle" id="repaymentTable" style="width:100%">
-                <thead class="table-light">
-                    <tr>
-                        <th>#</th>
-                        <th>Applicant</th>
-                        <th>Amount</th>
-                        <th>Due Date</th>
-                        <th>Method</th>
-                        <th>Status</th>
-                        <th class="text-end">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var r in Model)
-                    {
-                        <tr>
-                            <td class="fw-bold">
-                                @r.InstallmentNumber
-                                @if (!r.IsReadByAdmin)
-                                {
-                                    <span class="badge bg-danger rounded-pill ms-1">New</span>
-                                }
-                            </td>
-                            <td>@(r.User?.FullName ?? "N/A")</td>
-                            <td class="fw-bold">$@r.Amount.ToString("N2")</td>
-                            <td>@r.DueDate.ToString("dd MMM yyyy")</td>
-                            <td>
-                                @switch (r.PaymentMethodRequested)
-                                {
-                                    case PaymentMethodType.USDT:
-                                        <span class="badge bg-success"><i class="bi bi-currency-exchange me-1"></i>USDT</span>
-                                        break;
-                                    case PaymentMethodType.Bitcoin:
-                                        <span class="badge bg-warning text-dark"><i class="bi bi-currency-bitcoin me-1"></i>Bitcoin</span>
-                                        break;
-                                    case PaymentMethodType.BankTransfer:
-                                        <span class="badge bg-primary"><i class="bi bi-bank me-1"></i>Bank</span>
-                                        break;
-                                    default:
-                                        <span class="text-muted">—</span>
-                                        break;
-                                }
-                            </td>
-                            <td>
-                                @switch (r.Status)
-                                {
-                                    case RepaymentStatus.Paid:
-                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Paid</span>
-                                        break;
-                                    case RepaymentStatus.Due:
-                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Due</span>
-                                        break;
-                                    case RepaymentStatus.Missed:
-                                        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Missed</span>
-                                        break;
-                                    case RepaymentStatus.PaymentRequested:
-                                        <span class="badge bg-info"><i class="bi bi-send me-1"></i>Requested</span>
-                                        break;
-                                    case RepaymentStatus.DetailsSent:
-                                        <span class="badge bg-primary"><i class="bi bi-envelope-check me-1"></i>Details Sent</span>
-                                        break;
-                                    default:
-                                        <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Upcoming</span>
-                                        break;
-                                }
-                            </td>
-                            <td class="text-end">
-                                <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">
-                                    <i class="bi bi-eye me-1"></i>Manage
-                                </a>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+    <!-- Search & Filter -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body py-3">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchInput" class="form-control" placeholder="Search by name, email, or loan ID...">
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="d-flex flex-wrap gap-2">
+                        <button class="btn btn-outline-secondary btn-sm active filter-btn" data-filter="all">
+                            <i class="bi bi-grid me-1"></i>All (@loanGroups.Count)
+                        </button>
+                        <button class="btn btn-outline-danger btn-sm filter-btn" data-filter="action-needed">
+                            <i class="bi bi-bell me-1"></i>Needs Action (@actionNeededLoans)
+                        </button>
+                        <button class="btn btn-outline-warning btn-sm filter-btn" data-filter="has-missed">
+                            <i class="bi bi-exclamation-triangle me-1"></i>Has Missed (@loanGroups.Count(g => g.HasMissed))
+                        </button>
+                        <button class="btn btn-outline-success btn-sm filter-btn" data-filter="fully-paid">
+                            <i class="bi bi-check-circle me-1"></i>Fully Paid (@loanGroups.Count(g => g.PaidCount == g.TotalCount))
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
+
+    <!-- Grouped Repayments by Loan -->
+    <div id="loanGroups">
+        @if (!loanGroups.Any())
+        {
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center py-5">
+                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2 mb-0">No repayments found.</p>
+                </div>
+            </div>
+        }
+
+        @foreach (var group in loanGroups)
+        {
+            var progressPercent = group.TotalCount > 0 ? Math.Round((double)group.PaidCount / group.TotalCount * 100, 0) : 0;
+            var isFullyPaid = group.PaidCount == group.TotalCount;
+            var borderClass = group.HasActionNeeded ? "border-start border-4 border-danger" :
+                              group.HasMissed ? "border-start border-4 border-warning" :
+                              isFullyPaid ? "border-start border-4 border-success" : "";
+            var filterTags = (group.HasActionNeeded ? "action-needed " : "") +
+                             (group.HasMissed ? "has-missed " : "") +
+                             (isFullyPaid ? "fully-paid" : "");
+
+            <div class="card border-0 shadow-sm mb-3 loan-group @borderClass"
+                 data-filter-tags="@filterTags"
+                 data-search="@(group.User?.FullName?.ToLower()) @(group.User?.Email?.ToLower()) @group.LoanId">
+
+                <!-- Loan Group Header (clickable) -->
+                <div class="card-header bg-white py-3 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#loan-@group.LoanId" aria-expanded="false" style="cursor: pointer;">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 d-flex align-items-center">
+                            <div class="me-3">
+                                <div class="rounded-circle bg-primary bg-opacity-10 d-flex align-items-center justify-content-center" style="width:42px; height:42px;">
+                                    <i class="bi bi-person text-primary"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 fw-bold">
+                                    @(group.User?.FullName ?? "N/A")
+                                    @if (group.HasUnread)
+                                    {
+                                        <span class="badge bg-danger rounded-pill ms-1" style="font-size: 0.65rem;">NEW</span>
+                                    }
+                                </h6>
+                                <small class="text-muted">
+                                    Loan #@group.LoanId
+                                    @if (group.Loan?.LoanApplication != null)
+                                    {
+                                        <span>&bull; @group.Loan.LoanApplication.LoanPurpose</span>
+                                    }
+                                </small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <div class="fw-bold">$@group.Loan?.PrincipalAmount.ToString("N2")</div>
+                            <small class="text-muted">Loan Amount</small>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 8px; max-width: 80px;">
+                                    <div class="progress-bar @(isFullyPaid ? "bg-success" : "bg-primary")" style="width: @progressPercent%"></div>
+                                </div>
+                                <small class="fw-bold">@group.PaidCount/@group.TotalCount</small>
+                            </div>
+                            <small class="text-muted">Installments Paid</small>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <div class="fw-bold text-success">$@group.PaidAmount.ToString("N2")</div>
+                            <small class="text-muted">of $@group.TotalAmount.ToString("N2")</small>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            @if (group.HasActionNeeded)
+                            {
+                                <span class="badge bg-danger"><i class="bi bi-bell-fill me-1"></i>Action Needed</span>
+                            }
+                            else if (group.HasMissed)
+                            {
+                                <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Has Missed</span>
+                            }
+                            else if (isFullyPaid)
+                            {
+                                <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Fully Paid</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>In Progress</span>
+                            }
+                            <div class="mt-1">
+                                <i class="bi bi-chevron-down text-muted collapse-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collapsible Installments Table -->
+                <div id="loan-@group.LoanId" class="collapse">
+                    <div class="card-body pt-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="width:60px">Inst. #</th>
+                                        <th>Due Date</th>
+                                        <th>Principal</th>
+                                        <th>Interest</th>
+                                        <th>Total</th>
+                                        <th>Method</th>
+                                        <th>Status</th>
+                                        <th class="text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var r in group.Repayments)
+                                    {
+                                        var rowClass = r.Status == RepaymentStatus.PaymentRequested ? "table-warning" :
+                                                       r.Status == RepaymentStatus.Missed ? "table-danger" :
+                                                       r.Status == RepaymentStatus.Paid ? "" : "";
+                                        <tr class="@rowClass">
+                                            <td class="fw-bold">
+                                                @r.InstallmentNumber
+                                                @if (!r.IsReadByAdmin)
+                                                {
+                                                    <span class="badge bg-danger rounded-pill ms-1" style="font-size:0.6rem;">New</span>
+                                                }
+                                            </td>
+                                            <td>@r.DueDate.ToString("dd MMM yyyy")</td>
+                                            <td>$@r.PrincipalPortion.ToString("N2")</td>
+                                            <td>$@r.InterestPortion.ToString("N2")</td>
+                                            <td class="fw-bold">$@r.Amount.ToString("N2")</td>
+                                            <td>
+                                                @switch (r.PaymentMethodRequested)
+                                                {
+                                                    case PaymentMethodType.USDT:
+                                                        <span class="badge bg-success"><i class="bi bi-currency-exchange me-1"></i>USDT</span>
+                                                        break;
+                                                    case PaymentMethodType.Bitcoin:
+                                                        <span class="badge bg-warning text-dark"><i class="bi bi-currency-bitcoin me-1"></i>Bitcoin</span>
+                                                        break;
+                                                    case PaymentMethodType.BankTransfer:
+                                                        <span class="badge bg-primary"><i class="bi bi-bank me-1"></i>Bank</span>
+                                                        break;
+                                                    default:
+                                                        <span class="text-muted">—</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td>
+                                                @switch (r.Status)
+                                                {
+                                                    case RepaymentStatus.Paid:
+                                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Paid</span>
+                                                        break;
+                                                    case RepaymentStatus.Due:
+                                                        <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>Due</span>
+                                                        break;
+                                                    case RepaymentStatus.Missed:
+                                                        <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Missed</span>
+                                                        break;
+                                                    case RepaymentStatus.PaymentRequested:
+                                                        <span class="badge bg-info"><i class="bi bi-send me-1"></i>Requested</span>
+                                                        break;
+                                                    case RepaymentStatus.DetailsSent:
+                                                        <span class="badge bg-primary"><i class="bi bi-envelope-check me-1"></i>Details Sent</span>
+                                                        break;
+                                                    default:
+                                                        <span class="badge bg-secondary"><i class="bi bi-hourglass me-1"></i>Upcoming</span>
+                                                        break;
+                                                }
+                                            </td>
+                                            <td class="text-end">
+                                                <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary">
+                                                    <i class="bi bi-eye me-1"></i>Manage
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
     </div>
 </div>
 
 @section Scripts {
     <script>
-        $(document).ready(function () {
-            $('#repaymentTable').DataTable({
-                order: [[3, 'asc']],
-                pageLength: 25,
-                language: {
-                    search: '<i class="bi bi-search me-1"></i>',
-                    searchPlaceholder: "Search repayments..."
-                }
+        // Search functionality
+        document.getElementById('searchInput').addEventListener('input', function () {
+            const query = this.value.toLowerCase();
+            document.querySelectorAll('.loan-group').forEach(function (card) {
+                const searchData = card.getAttribute('data-search') || '';
+                card.style.display = searchData.includes(query) ? '' : 'none';
             });
+        });
+
+        // Filter buttons
+        document.querySelectorAll('.filter-btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const filter = this.getAttribute('data-filter');
+
+                document.querySelectorAll('.loan-group').forEach(function (card) {
+                    if (filter === 'all') {
+                        card.style.display = '';
+                    } else {
+                        const tags = card.getAttribute('data-filter-tags') || '';
+                        card.style.display = tags.includes(filter) ? '' : 'none';
+                    }
+                });
+            });
+        });
+
+        // Rotate chevron on collapse toggle
+        document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(function (header) {
+            var target = document.querySelector(header.getAttribute('data-bs-target'));
+            if (target) {
+                target.addEventListener('show.bs.collapse', function () {
+                    header.querySelector('.collapse-icon')?.classList.replace('bi-chevron-down', 'bi-chevron-up');
+                });
+                target.addEventListener('hide.bs.collapse', function () {
+                    header.querySelector('.collapse-icon')?.classList.replace('bi-chevron-up', 'bi-chevron-down');
+                });
+            }
         });
     </script>
 }
