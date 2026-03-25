@@ -42,7 +42,7 @@
                 <div class="mb-3">
                     <label asp-for="EmploymentStatus" class="form-label fw-semibold"></label>
                     <select asp-for="EmploymentStatus" asp-items="Html.GetEnumSelectList<LoanApp.Models.EmploymentStatus>()" class="form-select">
-                        <option value="">-- Select --</option>
+                        @* <option value="">-- Select --</option> *@
                     </select>
                     <span asp-validation-for="EmploymentStatus" class="text-danger"></span>
                 </div>
@@ -55,7 +55,7 @@
                         <label asp-for="MonthlyIncome" class="form-label fw-semibold"></label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input asp-for="MonthlyIncome" class="form-control" placeholder="e.g., 5000" id="monthlyIncomeInput" />
+                            <input min="500" asp-for="MonthlyIncome" class="form-control" placeholder="e.g., 5000" id="monthlyIncomeInput" />
                         </div>
                         <span asp-validation-for="MonthlyIncome" class="text-danger"></span>
                     </div>
@@ -63,7 +63,7 @@
                         <label asp-for="MonthlyExpenses" class="form-label fw-semibold"></label>
                         <div class="input-group">
                             <span class="input-group-text">$</span>
-                            <input asp-for="MonthlyExpenses" class="form-control" placeholder="e.g., 2000" id="monthlyExpensesInput" />
+                            <input min="100" asp-for="MonthlyExpenses" class="form-control" placeholder="e.g., 2000" id="monthlyExpensesInput" />
                         </div>
                         <span asp-validation-for="MonthlyExpenses" class="text-danger"></span>
                     </div>
